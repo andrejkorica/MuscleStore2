@@ -58,28 +58,7 @@ class MainActivity : ComponentActivity() {
             MuscleStoreTheme {
 
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "HomeView", route = "mainNavHost") {
-
-                    composable("HomeView") {
-                        HomeScreen()
-                    }
-
-
-                        composable("CalendarView") {
-                            CalendarScreen()
-                        }
-
-                        composable("PlansView") {
-                            PlansScreen()
-                        }
-
-
-                        composable("StoreView") {
-                            StoreScreen()
-
-                        }
-
-                }
+                
 
                 // A surface container using the 'background' color from the theme
                 val items = listOf(
@@ -149,7 +128,20 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     ){
-                        /* missing */
+                        NavHost(navController = navController, startDestination = "HomeView", route = "mainNavHost") {
+                            composable("HomeView") {
+                                HomeScreen()
+                            }
+                            composable("CalendarView") {
+                                CalendarScreen()
+                            }
+                            composable("PlansView") {
+                                PlansScreen()
+                            }
+                            composable("StoreView") {
+                                StoreScreen()
+                            }
+                        }
                     }
 
                 }
