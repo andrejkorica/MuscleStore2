@@ -14,7 +14,6 @@ import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.ShoppingCart
-import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,11 +26,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -57,17 +58,26 @@ class MainActivity : ComponentActivity() {
             MuscleStoreTheme {
 
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "home") {
+                NavHost(navController = navController, startDestination = "HomeView", route = "mainNavHost") {
 
-                    navigation(
-                        startDestination = "login",
-                        route = "auth"
-                    ){
-                        composable("login") {}
-                        composable("register") {}
-                        composable("forgotPassword") {}
-
+                    composable("HomeView") {
+                        HomeScreen()
                     }
+
+
+                        composable("CalendarView") {
+                            CalendarScreen()
+                        }
+
+                        composable("PlansView") {
+                            PlansScreen()
+                        }
+
+
+                        composable("StoreView") {
+                            StoreScreen()
+
+                        }
 
                 }
 
@@ -89,13 +99,13 @@ class MainActivity : ComponentActivity() {
 
                     ),
                     BottomNavigationItem(
-                        title = "list",
+                        title = "plans",
                         selectedIcon = Icons.Filled.List,
                         unselectedIcon = Icons.Outlined.List
 
                     ),
                     BottomNavigationItem(
-                        title = "Store",
+                        title = "store",
                         selectedIcon = Icons.Filled.ShoppingCart,
                         unselectedIcon = Icons.Outlined.ShoppingCart
 
@@ -120,7 +130,7 @@ class MainActivity : ComponentActivity() {
                                         selected = selectedItemIndex == index,
                                         onClick = {
                                             selectedItemIndex = index
-                                            /*navController.navigate(item.title) TODO INFO: ADD NAVIGATION*/
+                                            navController.navigate(item.title.replaceFirstChar { it.uppercase() } + "View")
                                         },
                                         label = {
                                             Text(text = item.title)
@@ -150,6 +160,10 @@ class MainActivity : ComponentActivity() {
 
 //comp za kreirati funckiju
 @Composable
-fun <T> NavBackStackEntry.sharedViewModel(navController: NavController): T {
-    
+inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavController): T {
+    val navGraphRoute = destination.parent?.route ?: return viewModel()
+    val parentEntry = remember(this) {
+        navController.getBackStackEntry(navGraphRoute)
+    }
+    return viewModel(parentEntry)
 }
