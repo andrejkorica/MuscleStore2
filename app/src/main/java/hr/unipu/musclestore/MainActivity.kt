@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,7 +42,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
@@ -54,7 +57,10 @@ import hr.unipu.musclestore.Views.HomeScreen
 import hr.unipu.musclestore.Views.PlansScreen
 import hr.unipu.musclestore.Views.ProfileView
 import hr.unipu.musclestore.Views.StoreScreen
+import hr.unipu.musclestore.data.CalendarInput
 import hr.unipu.musclestore.ui.theme.MuscleStoreTheme
+import java.time.LocalDate
+import java.util.Locale
 
 data class BottomNavigationItem(
     val title: String,
@@ -157,8 +163,21 @@ class MainActivity : ComponentActivity() {
 
                                 val calendarView = CalendarView()
 
+                                val currentYear = LocalDate.now().year
+                                val currentMonth = LocalDate.now().monthValue
+                                val currentMonthString = LocalDate.now().month.toString()
+                                    .lowercase(Locale.getDefault())
+                                    .replaceFirstChar {
+                                        if (it.isLowerCase()) it.titlecase(
+                                            Locale.getDefault()
+                                        ) else it.toString()
+                                    }
+
                                 val calendarInputList by remember {
-                                    mutableStateOf(calendarView.createCalendarList())
+                                    mutableStateOf(calendarView.createCalendarList(currentYear, currentMonth))
+                                }
+                                var clickedCalendarElem by remember {
+                                    mutableStateOf<CalendarInput?>(null)
                                 }
                                 Box(
                                     modifier = Modifier
@@ -168,8 +187,27 @@ class MainActivity : ComponentActivity() {
                                 ){
                                     calendarView.CalendarScreen(
                                         calendarInput = calendarInputList,
-                                        month = "April", onDayClick = {},
-                                        modifier = Modifier.padding(10.dp).fillMaxWidth().aspectRatio(1.4f))
+                                        onDayClick = {day -> clickedCalendarElem = calendarInputList.first { it.day == day}},
+                                        month = currentMonthString,
+                                        modifier = Modifier
+                                            .padding(10.dp)
+                                            .fillMaxWidth()
+                                            .aspectRatio(1.4f))
+                                    Column (
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(10.dp)
+                                            .align(Alignment.Center)
+                                    ){
+                                        clickedCalendarElem?.notes?.forEach {
+                                            Text(
+                                                if(it.contains("Day")) it else "- $it",
+                                                color = Color.Black,
+                                                fontWeight = FontWeight.SemiBold,
+                                                fontSize = if(it.contains("Day")) 25.sp else 18.sp
+                                            )
+                                        }
+                                    }
                                 }
                             }
                             composable("PlansView") {
