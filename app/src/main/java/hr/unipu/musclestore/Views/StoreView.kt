@@ -1,4 +1,4 @@
-package hr.unipu.musclestore
+package hr.unipu.musclestore.Views
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

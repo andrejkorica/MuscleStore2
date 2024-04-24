@@ -1,5 +1,4 @@
-package hr.unipu.musclestore
-
+package hr.unipu.musclestore.Views
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
@@ -8,11 +7,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun CalendarScreen() {
+fun ProfileView() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "Calendar")
+        Text(text = "Profile")
     }
 }
