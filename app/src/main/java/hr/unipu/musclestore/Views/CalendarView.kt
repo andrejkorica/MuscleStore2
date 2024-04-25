@@ -84,30 +84,33 @@ class CalendarView {
         Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
                 text = month,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.Gray,
+                fontWeight = FontWeight.Medium,
+                color = Color.Black,
                 fontSize = 40.sp
             )
             Canvas(modifier = Modifier.
                         fillMaxSize().
-                        pointerInput(true){
-                            detectTapGestures (
-                                onTap = {offset ->
-                                    val column = (offset.x / canvasSize.width * CALENDAR_COLUMNS).toInt() + 1
-                                    val row = (offset.y / canvasSize.height * CALENDAR_ROWS).toInt() + 1
-                                    val day = column + (row -1) * CALENDAR_COLUMNS
-                                    if (day <= calendarInput.size ){
-                                        onDayClick(day)
-                                        scope.launch {
-                                            animate(0f, 225f, animationSpec = tween(300)){
-                                                value, _ ->
-                                                    animationRadius = value
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                        }) {
+            pointerInput(true) {
+                detectTapGestures { offset ->
+                    val column = (offset.x / canvasSize.width * CALENDAR_COLUMNS).toInt()
+                    val row = (offset.y / canvasSize.height * CALENDAR_ROWS).toInt()
+                    val day = column + row * CALENDAR_COLUMNS + 1 // Calculate the day within the grid
+                    if (day <= calendarInput.size) {
+                        onDayClick(day)
+                        val clickedOffset = Offset(
+                            (column.toFloat() / CALENDAR_COLUMNS) * canvasSize.width,
+                            (row.toFloat() / CALENDAR_ROWS) * canvasSize.height
+                        )
+                        clickedAnimationOffset = clickedOffset
+                        scope.launch {
+                            animate(0f, 225f, animationSpec = tween(300)) { value, _ ->
+                                animationRadius = value
+                            }
+                        }
+                    }
+                }
+            }
+            ) {
                 val canvasHeight = size.height
                 val canvasWidth = size.width
                 canvasSize = Size(canvasWidth, canvasHeight)
@@ -121,7 +124,7 @@ class CalendarView {
                     moveTo((column-1)*xSteps, (row-1) * ySteps)
                     lineTo(column*xSteps, (row-1)*ySteps)
                     lineTo(column*xSteps, row*ySteps)
-                    lineTo((column*1) * xSteps, row*ySteps)
+                    lineTo((column-1) * xSteps, row*ySteps)
                     close()
                 }
 
