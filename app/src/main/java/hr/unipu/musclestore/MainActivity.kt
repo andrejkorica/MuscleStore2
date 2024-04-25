@@ -2,14 +2,17 @@ package hr.unipu.musclestore
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -32,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -164,21 +168,23 @@ class MainActivity : ComponentActivity() {
                                 val calendarView = CalendarView()
 
                                 val currentYear = LocalDate.now().year
-                                val currentMonth = LocalDate.now().monthValue
-                                val currentMonthString = LocalDate.now().month.toString()
-                                    .lowercase(Locale.getDefault())
-                                    .replaceFirstChar {
-                                        if (it.isLowerCase()) it.titlecase(
-                                            Locale.getDefault()
-                                        ) else it.toString()
-                                    }
+                                var month by remember { mutableStateOf(LocalDate.now().monthValue) }
+                                val currentMonthString = remember(month) {
+                                    LocalDate.now().withMonth(month).month.toString()
+                                        .lowercase(Locale.getDefault())
+                                        .replaceFirstChar {
+                                            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
+                                        }
+                                }
 
-                                val calendarInputList by remember {
-                                    mutableStateOf(calendarView.createCalendarList(currentYear, currentMonth))
+
+                                var calendarInputList by remember(month) {
+                                    mutableStateOf(calendarView.createCalendarList(currentYear, month))
                                 }
                                 var clickedCalendarElem by remember {
                                     mutableStateOf<CalendarInput?>(null)
                                 }
+
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -186,25 +192,34 @@ class MainActivity : ComponentActivity() {
                                     contentAlignment = Alignment.TopCenter
                                 ){
                                     calendarView.CalendarScreen(
-                                        calendarInput = calendarInputList,
-                                        onDayClick = {day -> clickedCalendarElem = calendarInputList.first { it.day == day}},
                                         month = currentMonthString,
+                                        calendarInput = calendarInputList,
+                                        onDayClick = { day -> clickedCalendarElem = calendarInputList.first { it.day == day } },
                                         modifier = Modifier
                                             .padding(10.dp)
                                             .fillMaxWidth()
-                                            .aspectRatio(1.4f))
+                                            .aspectRatio(1.1f),
+                                        onPreviousMonthClick = {
+                                            month = if (month == 1) 12 else month - 1
+                                            calendarInputList = calendarView.createCalendarList(currentYear, month)
+                                        },
+                                        onNextMonthClick = {
+                                            month = if (month == 12) 1 else month + 1
+                                            calendarInputList = calendarView.createCalendarList(currentYear, month)
+                                        })
                                     Column (
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(10.dp)
-                                            .align(Alignment.Center)
+                                            .align(Alignment.CenterEnd)
                                     ){
+                                        Spacer(modifier = Modifier.height(60.dp))
                                         clickedCalendarElem?.notes?.forEach {
                                             Text(
-                                                if(it.contains("Day")) it else "- $it",
+                                                if (it.contains("Day")) it else "- $it",
                                                 color = Color.Black,
                                                 fontWeight = FontWeight.SemiBold,
-                                                fontSize = if(it.contains("Day")) 25.sp else 18.sp
+                                                fontSize = if (it.contains("Day")) 25.sp else 18.sp,
                                             )
                                         }
                                     }

@@ -1,13 +1,26 @@
 package hr.unipu.musclestore.Views
 
 import android.graphics.Paint
+import android.graphics.Paint.Align
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,12 +45,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hr.unipu.musclestore.data.CalendarInput
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.YearMonth
+import java.util.Locale
 
 
 private const val CALENDAR_ROWS = 5
 private const val CALENDAR_COLUMNS = 7
 class CalendarView {
+
 
 
     fun createCalendarList(year: Int, month: Int): List<CalendarInput> {
@@ -64,9 +80,12 @@ class CalendarView {
         modifier: Modifier = Modifier,
         calendarInput: List<CalendarInput>,
         onDayClick: (Int) -> Unit,
+        onPreviousMonthClick: () -> Unit,
+        onNextMonthClick: () -> Unit,
         strokeWidth: Float = 5f,
         month: String
     ) {
+
 
         var canvasSize by remember {
             mutableStateOf(Size.Zero)
@@ -86,8 +105,33 @@ class CalendarView {
                 text = month,
                 fontWeight = FontWeight.Medium,
                 color = Color.Black,
-                fontSize = 40.sp
+                fontSize = 40.sp,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(
+                    onClick = onPreviousMonthClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Previous Month"
+                    )
+                }
+
+                IconButton(
+                    onClick = onNextMonthClick
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowForward,
+                        contentDescription = "Next Month"
+                    )
+                }
+            }
+
+
             Canvas(modifier = Modifier.
                         fillMaxSize().
             pointerInput(true) {
@@ -184,7 +228,9 @@ class CalendarView {
                     }
                 }
 
+
             }
         }
+
     }
 }
