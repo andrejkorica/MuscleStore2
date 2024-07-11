@@ -168,7 +168,7 @@ class MainActivity : ComponentActivity() {
                                 val calendarView = CalendarView()
 
                                 val currentYear = LocalDate.now().year
-                                var month by remember { mutableStateOf(LocalDate.now().monthValue) }
+                                var month by remember { mutableIntStateOf(LocalDate.now().monthValue) }
                                 val currentMonthString = remember(month) {
                                     LocalDate.now().withMonth(month).month.toString()
                                         .lowercase(Locale.getDefault())
