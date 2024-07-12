@@ -128,7 +128,6 @@ class MainActivity : ComponentActivity() {
                 }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
                 ) {
 
 
@@ -187,8 +186,7 @@ class MainActivity : ComponentActivity() {
 
                                 Box(
                                     modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(Color.White),
+                                        .fillMaxSize(),
                                     contentAlignment = Alignment.TopCenter
                                 ){
                                     calendarView.CalendarScreen(

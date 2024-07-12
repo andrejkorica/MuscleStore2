@@ -185,7 +185,7 @@ class CalendarView {
                  }
 
                 drawRoundRect(
-                    color = Color.Gray,
+                    color = Color.White,
                     cornerRadius = CornerRadius(15f, 15f),
                     style = Stroke(
                         width = strokeWidth

@@ -3,6 +3,7 @@ package hr.unipu.musclestore.Views
 import CustomCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -31,7 +32,7 @@ fun PlansScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color.White)
-                .padding(vertical = 16.dp, horizontal = 16.dp)
+                .padding(8.dp)
         ) {
             Column {
                 Row(
@@ -58,7 +59,7 @@ fun PlansScreen() {
 
                 Text(
                     text = "Active",
-                    modifier = Modifier.padding(vertical = 16.dp),
+                    modifier = Modifier.padding(8.dp),
                     style = MaterialTheme.typography.headlineMedium
                 )
 
@@ -72,24 +73,6 @@ fun PlansScreen() {
             }
         }
 
-
-        // ADD button
-        Box(
-            modifier = Modifier
-                .background(Color.LightGray)
-                .fillMaxWidth()
-                .weight(1f)
-        ) {
-            FloatingActionButton(
-                onClick = { /* Handle plus button click */ },
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.BottomEnd)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-            }
-        }
-
         // Dialog modal
         if (showFilterDialog) {
             AlertDialog(
@@ -99,7 +82,9 @@ fun PlansScreen() {
 
                 text = {
                     Column(
-                        modifier = Modifier.padding(20.dp).fillMaxWidth(),
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -126,6 +111,41 @@ fun PlansScreen() {
                 dismissButton = {}
             )
         }
-    }
 
+
+
+        Box(
+            modifier = Modifier
+                .background(Color.LightGray)
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .weight(1f)
+        ) {
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(5) {
+                    CustomCard(
+                        imageUrl = R.drawable.lifter, // Replace with your actual drawable resource id
+                        headerText = "Header Text",
+                        createdAt = "28 Feb 2024",
+                        postedBy = "Dominik Ruzic",
+                        downloads = 156
+                    )
+                }
+            }
+
+            // ADD button
+            FloatingActionButton(
+                onClick = { /* Handle plus button click */ },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.BottomEnd)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add")
+
+            }
+        }
+    }
 }
