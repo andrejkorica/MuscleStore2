@@ -5,12 +5,14 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -36,7 +38,7 @@ fun ProfileView() {
 
     Box(
         modifier = Modifier
-            .fillMaxSize(), // Padding to add some space around the components
+            .fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ) {
         Column(
@@ -48,12 +50,11 @@ fun ProfileView() {
             Box(Modifier
                 .padding(start = 42.dp, top = 42.dp, end = 42.dp, bottom = 8.dp)) {
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Image at the top
+                    // Image on the left
                     Image(
                         painter = painterResource(id = R.drawable.me), // Replace with your image resource
                         contentDescription = "Profile Picture",
@@ -62,25 +63,31 @@ fun ProfileView() {
                             .clip(RoundedCornerShape(16.dp))
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.width(16.dp))
 
-                    // Text with name
-                    Text(
-                        text = "Andrej Korica",
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Logout button
-                    Button(
-                        onClick = { /* Do nothing for now */ },
-                        colors = ButtonDefaults.buttonColors(Color.Red.copy(alpha = 0.7f)),
-                        shape = RoundedCornerShape(8.dp) // Less rounded corners
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.weight(1f).fillMaxWidth()
                     ) {
-                        Text(text = "Logout", color = Color.White, fontSize = 16.sp)
-                    }
+                        // Text with name
+                        Text(
+                            text = "Kora",
+                            style = MaterialTheme.typography.headlineSmall,
 
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Logout button
+                        Button(
+                            onClick = { /* Do nothing for now */ },
+                            colors = ButtonDefaults.buttonColors(Color.Red.copy(alpha = 0.7f)),
+                            shape = RoundedCornerShape(8.dp) // Less rounded corners
+                        ) {
+                            Text(text = "Logout", color = Color.White, fontSize = 16.sp)
+                        }
+                    }
                 }
             }
 
@@ -129,19 +136,18 @@ fun ProfileView() {
 
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Box(
+            Card(
                 Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(32.dp)).background(Color.LightGray)){
-                Column (horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()){
+                    .clip(RoundedCornerShape(32.dp))){
+                Column (horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize().padding(32.dp)){
 
-                Button(
-                    onClick = { /* Do nothing for now */ },
-                    colors = ButtonDefaults.buttonColors(Color.White),
-                    shape = RoundedCornerShape(8.dp) // Less rounded corners
-                ) {
-                    Text(text = "Change credentials", fontSize = 16.sp, color = Color.Black)
-                }
+                    Button(
+                        onClick = { /* Do nothing for now */ },
+                        shape = RoundedCornerShape(8.dp) // Less rounded corners
+                    ) {
+                        Text(text = "Change credentials", fontSize = 16.sp, color = Color.White)
+                    }
                     Button(
                         onClick = { /* Do nothing for now */ },
                         colors = ButtonDefaults.buttonColors(Color.Red.copy(alpha = 0.7f)),
@@ -160,11 +166,6 @@ fun ProfileView() {
                 }
             }
         }
-
-
     }
-
-
-
-
 }
+
