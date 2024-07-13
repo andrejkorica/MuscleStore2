@@ -1,5 +1,6 @@
 package hr.unipu.musclestore.Views
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +33,7 @@ import hr.unipu.musclestore.R
 
 @Composable
 fun ProfileView() {
+
     Box(
         modifier = Modifier
             .fillMaxSize(), // Padding to add some space around the components
@@ -101,7 +103,9 @@ fun ProfileView() {
                         Text(
                             text = "Statistics",
                             style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth(),
+                            modifier = Modifier
+                                .padding(bottom = 8.dp)
+                                .fillMaxWidth(),
                             textAlign = TextAlign.Center
 
                         )
@@ -121,6 +125,38 @@ fun ProfileView() {
                         Text(text = "Current Plan: Ulul v3", fontSize = 16.sp)
                         Text(text = "Used plan for: 10 days", fontSize = 16.sp)
                     }
+                }
+
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(32.dp)).background(Color.LightGray)){
+                Column (horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxSize()){
+
+                Button(
+                    onClick = { /* Do nothing for now */ },
+                    colors = ButtonDefaults.buttonColors(Color.White),
+                    shape = RoundedCornerShape(8.dp) // Less rounded corners
+                ) {
+                    Text(text = "Change credentials", fontSize = 16.sp, color = Color.Black)
+                }
+                    Button(
+                        onClick = { /* Do nothing for now */ },
+                        colors = ButtonDefaults.buttonColors(Color.Red.copy(alpha = 0.7f)),
+                        shape = RoundedCornerShape(8.dp) // Less rounded corners
+                    ) {
+                        Text(text = "Delete data", fontSize = 16.sp)
+                    }
+                    Button(
+                        onClick = { /* Do nothing for now */ },
+                        colors = ButtonDefaults.buttonColors(Color.Red.copy(alpha = 0.7f)),
+                        shape = RoundedCornerShape(8.dp) // Less rounded corners
+                    ) {
+                        Text(text = "Delete account", fontSize = 16.sp)
+                    }
+
                 }
             }
         }
