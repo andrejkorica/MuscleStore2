@@ -138,9 +138,8 @@ fun ProfileView() {
             Spacer(modifier = Modifier.height(16.dp))
             Card(
                 Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(32.dp))){
-                Column (horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize().padding(32.dp)){
+                    .clip(RoundedCornerShape(16.dp))){
+                Column (horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)){
 
                     Button(
                         onClick = { /* Do nothing for now */ },
