@@ -1,4 +1,4 @@
-package hr.unipu.musclestore.Views
+package hr.unipu.musclestore.views
 
 import CustomCard
 import androidx.compose.foundation.background

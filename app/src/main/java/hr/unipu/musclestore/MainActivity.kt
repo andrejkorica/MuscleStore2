@@ -2,10 +2,8 @@ package hr.unipu.musclestore
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,14 +26,12 @@ import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -56,11 +52,11 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import hr.unipu.musclestore.Views.CalendarView
-import hr.unipu.musclestore.Views.HomeScreen
-import hr.unipu.musclestore.Views.PlansScreen
-import hr.unipu.musclestore.Views.ProfileView
-import hr.unipu.musclestore.Views.StoreScreen
+import hr.unipu.musclestore.views.CalendarView
+import hr.unipu.musclestore.views.HomeScreen
+import hr.unipu.musclestore.views.PlansScreen
+import hr.unipu.musclestore.views.ProfileView
+import hr.unipu.musclestore.views.StoreScreen
 import hr.unipu.musclestore.data.CalendarInput
 import hr.unipu.musclestore.ui.theme.MuscleStoreTheme
 import java.time.LocalDate

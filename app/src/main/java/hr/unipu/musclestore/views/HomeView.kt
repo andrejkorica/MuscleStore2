@@ -1,4 +1,4 @@
-package hr.unipu.musclestore.Views
+package hr.unipu.musclestore.views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
