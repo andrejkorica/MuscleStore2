@@ -1,6 +1,6 @@
 package hr.unipu.musclestore.views
 
-import CustomCard
+import hr.unipu.musclestore.composables.CustomCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

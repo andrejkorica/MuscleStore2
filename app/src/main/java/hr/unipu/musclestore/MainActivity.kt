@@ -51,14 +51,18 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import hr.unipu.musclestore.views.AuthScreen
+import hr.unipu.musclestore.views.LoginScreen
+import hr.unipu.musclestore.views.SignUpScreen
+import hr.unipu.musclestore.data.CalendarInput
+import hr.unipu.musclestore.ui.theme.MuscleStoreTheme
 import hr.unipu.musclestore.views.CalendarView
 import hr.unipu.musclestore.views.HomeScreen
 import hr.unipu.musclestore.views.PlansScreen
 import hr.unipu.musclestore.views.ProfileView
 import hr.unipu.musclestore.views.StoreScreen
-import hr.unipu.musclestore.data.CalendarInput
-import hr.unipu.musclestore.ui.theme.MuscleStoreTheme
 import java.time.LocalDate
 import java.util.Locale
 
@@ -79,7 +83,7 @@ class MainActivity : ComponentActivity() {
             MuscleStoreTheme {
 
                 val navController = rememberNavController()
-                
+
 
                 // A surface container using the 'background' color from the theme
                 val items = listOf(
@@ -126,35 +130,56 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                 ) {
 
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentRoute = navBackStackEntry?.destination?.route
+
 
                     Scaffold (
-                        bottomBar = {
-                            NavigationBar {
-                                items.forEachIndexed { index, item ->
-                                    NavigationBarItem(
-                                        selected = selectedItemIndex == index,
-                                        onClick = {
-                                            selectedItemIndex = index
-                                            navController.navigate(item.title.replaceFirstChar { it.uppercase() } + "View")
-                                        },
-                                        label = {
-                                            Text(text = item.title)
-                                        },
-                                        icon = { BadgedBox(badge = {
 
-                                            // za dodati npr notifikacije neke, brojeve, tockicu
+
+                            bottomBar = {
+                                if (currentRoute != "InitView" && currentRoute != "SignUpView" && currentRoute != "LoginView") {
+
+                                    NavigationBar {
+
+                                        items.forEachIndexed { index, item ->
+                                            NavigationBarItem(
+                                                selected = selectedItemIndex == index,
+                                                onClick = {
+                                                    selectedItemIndex = index
+                                                    navController.navigate(item.title.replaceFirstChar { it.uppercase() } + "View")
+                                                },
+                                                label = {
+                                                    Text(text = item.title)
+                                                },
+                                                icon = {
+                                                    BadgedBox(badge = {
+
+                                                        // za dodati npr notifikacije neke, brojeve, tockicu
 //                                            Badge {
 //                                                Text(text = "Test")
 //                                            }
 
-                                        }) {
-                                            Icon(imageVector = if (index == selectedItemIndex) {item.selectedIcon} else item.selectedIcon, contentDescription = item.title)
-                                        } })
+                                                    }) {
+                                                        Icon(
+                                                            imageVector = if (index == selectedItemIndex) {
+                                                                item.selectedIcon
+                                                            } else item.selectedIcon,
+                                                            contentDescription = item.title
+                                                        )
+                                                    }
+                                                })
+                                        }
+                                    }
                                 }
                             }
-                        }
+
+
                     ){
-                        NavHost(navController = navController, startDestination = "HomeView", route = "mainNavHost") {
+                        NavHost(navController = navController, startDestination = "InitView", route = "mainNavHost") {
+                            composable("InitView") {
+                                AuthScreen(navController = navController)
+                            }
                             composable("HomeView") {
                                 HomeScreen()
                             }
@@ -230,7 +255,14 @@ class MainActivity : ComponentActivity() {
                             composable("ProfileView") {
                                 ProfileView()
                             }
+                            composable("SignUpView"){
+                                SignUpScreen()
+                            }
+                            composable("LoginView"){
+                                LoginScreen()
+                            }
                         }
+
                     }
 
                 }
