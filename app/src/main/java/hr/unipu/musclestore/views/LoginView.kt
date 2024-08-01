@@ -1,18 +1,20 @@
-package hr.unipu.musclestore.views
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import hr.unipu.musclestore.viewmodels.LoginViewModel
+import androidx.navigation.NavController
 
 @Composable
-fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
+fun LoginScreen(navController: NavController) {
+    val viewModel: LoginViewModel = viewModel()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -37,11 +39,30 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel()) {
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                viewModel.login(email, password)
+                viewModel.login(email, password) { token ->
+                    if (token != null) {
+                        // Save the token
+                        TokenManager.saveToken(context, token)
+
+                        // Navigate to HomeView and clear back stack
+                        navController.navigate("HomeView") {
+                            // Clear the back stack
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            }
+                        }
+                    } else {
+                        errorMessage = "Login failed"
+                    }
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Login")
+        }
+        errorMessage?.let {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(it, color = MaterialTheme.colorScheme.error)
         }
     }
 }

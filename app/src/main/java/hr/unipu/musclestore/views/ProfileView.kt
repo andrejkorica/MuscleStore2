@@ -1,37 +1,26 @@
 package hr.unipu.musclestore.views
+
+import TokenManager
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import hr.unipu.musclestore.R
 
 @Composable
-fun ProfileView() {
+fun ProfileView(navController: NavController) {
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -43,10 +32,10 @@ fun ProfileView() {
             verticalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
-
-            Box(Modifier
-                .padding(start = 42.dp, top = 42.dp, end = 42.dp, bottom = 8.dp)) {
-
+            Box(
+                Modifier
+                    .padding(start = 42.dp, top = 42.dp, end = 42.dp, bottom = 8.dp)
+            ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -70,15 +59,23 @@ fun ProfileView() {
                         // Text with name
                         Text(
                             text = "Kora",
-                            style = MaterialTheme.typography.headlineSmall,
-
+                            style = MaterialTheme.typography.headlineSmall
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Logout button
                         Button(
-                            onClick = { /* Do nothing for now */ },
+                            onClick = {
+                                // Clear the token and navigate to InitView
+                                TokenManager.clearToken(context)
+                                navController.navigate("InitView") {
+                                    // Clear backstack to prevent navigation back to any previous screen
+                                    popUpTo("InitView") {
+                                        inclusive = true
+                                    }
+                                }
+                            },
                             colors = ButtonDefaults.buttonColors(Color.Red.copy(alpha = 0.7f)),
                             shape = RoundedCornerShape(8.dp) // Less rounded corners
                         ) {
@@ -111,7 +108,6 @@ fun ProfileView() {
                                 .padding(bottom = 8.dp)
                                 .fillMaxWidth(),
                             textAlign = TextAlign.Center
-
                         )
 
                         // Stats
@@ -130,14 +126,17 @@ fun ProfileView() {
                         Text(text = "Used plan for: 10 days", fontSize = 16.sp)
                     }
                 }
-
             }
+
             Spacer(modifier = Modifier.height(16.dp))
             Card(
                 Modifier
-                    .clip(RoundedCornerShape(16.dp))){
-                Column (horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)){
-
+                    .clip(RoundedCornerShape(16.dp))
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(24.dp)
+                ) {
                     Button(
                         onClick = { /* Do nothing for now */ },
                         shape = RoundedCornerShape(8.dp) // Less rounded corners
@@ -158,10 +157,8 @@ fun ProfileView() {
                     ) {
                         Text(text = "Delete account", fontSize = 16.sp)
                     }
-
                 }
             }
         }
     }
 }
-

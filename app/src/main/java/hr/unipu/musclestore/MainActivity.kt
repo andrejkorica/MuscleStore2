@@ -1,17 +1,12 @@
 package hr.unipu.musclestore
 
+import LoginScreen
+import hr.unipu.musclestore.views.ProfileView
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
@@ -31,12 +26,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,14 +44,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import hr.unipu.musclestore.views.AuthScreen
-import hr.unipu.musclestore.views.LoginScreen
 import hr.unipu.musclestore.views.SignUpScreen
 import hr.unipu.musclestore.data.CalendarInput
 import hr.unipu.musclestore.ui.theme.MuscleStoreTheme
 import hr.unipu.musclestore.views.CalendarView
 import hr.unipu.musclestore.views.HomeScreen
 import hr.unipu.musclestore.views.PlansScreen
-import hr.unipu.musclestore.views.ProfileView
 import hr.unipu.musclestore.views.StoreScreen
 import java.time.LocalDate
 import java.util.Locale
@@ -79,104 +67,90 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-
             MuscleStoreTheme {
-
                 val navController = rememberNavController()
 
+                // Check for token and determine the starting route
+                val token = TokenManager.getToken(context = this)
+                val startDestination by rememberUpdatedState(if (token != null) "HomeView" else "InitView")
 
-                // A surface container using the 'background' color from the theme
                 val items = listOf(
-
-                    // Moguce je dodatai extended icons set!
-
                     BottomNavigationItem(
                         title = "home",
                         selectedIcon = Icons.Filled.Home,
                         unselectedIcon = Icons.Outlined.Home
-
                     ),
                     BottomNavigationItem(
                         title = "calendar",
                         selectedIcon = Icons.Filled.DateRange,
                         unselectedIcon = Icons.Outlined.DateRange
-
                     ),
                     BottomNavigationItem(
                         title = "plans",
                         selectedIcon = Icons.Filled.List,
                         unselectedIcon = Icons.Outlined.List
-
                     ),
                     BottomNavigationItem(
                         title = "store",
                         selectedIcon = Icons.Filled.ShoppingCart,
                         unselectedIcon = Icons.Outlined.ShoppingCart
-
                     ),
                     BottomNavigationItem(
                         title = "profile",
                         selectedIcon = Icons.Filled.Person,
                         unselectedIcon = Icons.Outlined.Person
-
-                    ),
+                    )
                 )
 
-                // survives screen rotations and configurations
                 var selectedItemIndex by rememberSaveable {
                     mutableIntStateOf(0)
                 }
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize()
                 ) {
-
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentRoute = navBackStackEntry?.destination?.route
-
-
-                    Scaffold (
-
-
-                            bottomBar = {
-                                if (currentRoute != "InitView" && currentRoute != "SignUpView" && currentRoute != "LoginView") {
-
-                                    NavigationBar {
-
-                                        items.forEachIndexed { index, item ->
-                                            NavigationBarItem(
-                                                selected = selectedItemIndex == index,
-                                                onClick = {
-                                                    selectedItemIndex = index
-                                                    navController.navigate(item.title.replaceFirstChar { it.uppercase() } + "View")
-                                                },
-                                                label = {
-                                                    Text(text = item.title)
-                                                },
-                                                icon = {
-                                                    BadgedBox(badge = {
-
-                                                        // za dodati npr notifikacije neke, brojeve, tockicu
-//                                            Badge {
-//                                                Text(text = "Test")
-//                                            }
-
-                                                    }) {
-                                                        Icon(
-                                                            imageVector = if (index == selectedItemIndex) {
-                                                                item.selectedIcon
-                                                            } else item.selectedIcon,
-                                                            contentDescription = item.title
-                                                        )
-                                                    }
-                                                })
-                                        }
+                    Scaffold(
+                        bottomBar = {
+                            if (currentRoute != "InitView" && currentRoute != "SignUpView" && currentRoute != "LoginView") {
+                                NavigationBar {
+                                    items.forEachIndexed { index, item ->
+                                        NavigationBarItem(
+                                            selected = selectedItemIndex == index,
+                                            onClick = {
+                                                selectedItemIndex = index
+                                                navController.navigate(item.title.replaceFirstChar { it.uppercase() } + "View") {
+                                                    // Ensure to avoid multiple copies of the same destination
+                                                    popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                                                }
+                                            },
+                                            label = {
+                                                Text(text = item.title)
+                                            },
+                                            icon = {
+                                                BadgedBox(badge = {
+                                                    // Badge logic can be added here
+                                                }) {
+                                                    Icon(
+                                                        imageVector = if (index == selectedItemIndex) {
+                                                            item.selectedIcon
+                                                        } else item.unselectedIcon,
+                                                        contentDescription = item.title
+                                                    )
+                                                }
+                                            }
+                                        )
                                     }
                                 }
                             }
-
-
-                    ){
-                        NavHost(navController = navController, startDestination = "InitView", route = "mainNavHost") {
+                        }
+                    ) { innerPadding ->
+                        NavHost(
+                            navController = navController,
+                            startDestination = startDestination,
+                            Modifier.padding(innerPadding)
+                        ) {
                             composable("InitView") {
                                 AuthScreen(navController = navController)
                             }
@@ -184,32 +158,24 @@ class MainActivity : ComponentActivity() {
                                 HomeScreen()
                             }
                             composable("CalendarView") {
-
                                 val calendarView = CalendarView()
-
                                 val currentYear = LocalDate.now().year
                                 var month by remember { mutableIntStateOf(LocalDate.now().monthValue) }
                                 val currentMonthString = remember(month) {
                                     LocalDate.now().withMonth(month).month.toString()
                                         .lowercase(Locale.getDefault())
-                                        .replaceFirstChar {
-                                            if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-                                        }
+                                        .replaceFirstChar { it.titlecase(Locale.getDefault()) }
                                 }
-
-
                                 var calendarInputList by remember(month) {
                                     mutableStateOf(calendarView.createCalendarList(currentYear, month))
                                 }
                                 var clickedCalendarElem by remember {
                                     mutableStateOf<CalendarInput?>(null)
                                 }
-
                                 Box(
-                                    modifier = Modifier
-                                        .fillMaxSize(),
+                                    modifier = Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.TopCenter
-                                ){
+                                ) {
                                     calendarView.CalendarScreen(
                                         month = currentMonthString,
                                         calendarInput = calendarInputList,
@@ -225,53 +191,50 @@ class MainActivity : ComponentActivity() {
                                         onNextMonthClick = {
                                             month = if (month == 12) 1 else month + 1
                                             calendarInputList = calendarView.createCalendarList(currentYear, month)
-                                        })
-                                    Column (
+                                        }
+                                    )
+                                    Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(10.dp)
                                             .align(Alignment.CenterEnd)
-                                    ){
+                                    ) {
                                         Spacer(modifier = Modifier.height(60.dp))
                                         clickedCalendarElem?.notes?.forEach {
                                             Text(
                                                 if (it.contains("Day")) it else "- $it",
                                                 color = Color.Black,
                                                 fontWeight = FontWeight.SemiBold,
-                                                fontSize = if (it.contains("Day")) 25.sp else 18.sp,
+                                                fontSize = if (it.contains("Day")) 25.sp else 18.sp
                                             )
                                         }
                                     }
                                 }
                             }
                             composable("PlansView") {
-
-                                    PlansScreen()
-
+                                PlansScreen()
                             }
                             composable("StoreView") {
                                 StoreScreen()
                             }
                             composable("ProfileView") {
-                                ProfileView()
+                                ProfileView(navController = navController)
                             }
-                            composable("SignUpView"){
+                            composable("SignUpView") {
                                 SignUpScreen()
                             }
-                            composable("LoginView"){
-                                LoginScreen()
+                            composable("LoginView") {
+                                LoginScreen(navController = navController)
                             }
                         }
-
                     }
-
                 }
             }
         }
     }
 }
 
-//comp za kreirati funckiju
+// Extension function to get shared view model
 @Composable
 inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavController): T {
     val navGraphRoute = destination.parent?.route ?: return viewModel()

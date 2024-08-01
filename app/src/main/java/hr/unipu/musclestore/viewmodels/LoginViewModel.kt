@@ -1,6 +1,3 @@
-package hr.unipu.musclestore.viewmodels
-
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -17,14 +14,15 @@ import java.io.IOException
 class LoginViewModel : ViewModel() {
     private val client = OkHttpClient()
 
-    fun login(email: String, password: String) {
+    fun login(email: String, password: String, onTokenReceived: (String?) -> Unit) {
         viewModelScope.launch {
             val response = loginRequest(email, password)
-            Log.d("LoginViewModel", response)
+            val token = response?.let { JSONObject(it).optString("token") }
+            onTokenReceived(token)
         }
     }
 
-    private suspend fun loginRequest(email: String, password: String): String {
+    private suspend fun loginRequest(email: String, password: String): String? {
         return withContext(Dispatchers.IO) {
             val json = JSONObject().apply {
                 put("email", email)
@@ -40,14 +38,13 @@ class LoginViewModel : ViewModel() {
             try {
                 client.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
-                        response.body?.string() ?: "Success with empty body"
+                        response.body?.string()
                     } else {
-                        "Failed with response code ${response.code}, message: ${response.message}"
+                        null
                     }
                 }
             } catch (e: IOException) {
-                Log.e("LoginViewModel", "Exception during login request: ${e.message}")
-                "Exception: ${e.message}"
+                null
             }
         }
     }
