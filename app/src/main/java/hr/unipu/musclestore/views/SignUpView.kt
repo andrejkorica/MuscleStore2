@@ -6,19 +6,21 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import hr.unipu.musclestore.viewmodels.SignUpViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpScreen(viewModel: SignUpViewModel = viewModel()) {
+fun SignUpScreen(viewModel: SignUpViewModel = viewModel(), navController: NavController) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isSigningUp by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -57,17 +59,27 @@ fun SignUpScreen(viewModel: SignUpViewModel = viewModel()) {
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                Log.d("SignUpScreen", "Sign Up button clicked with email: $email")
-                isSigningUp = true
-                viewModel.signUp(firstName, lastName, email, password)
+                viewModel.signUp(firstName, lastName, email, password) {token ->
+                    if (token != null) {
+                        // Save the token
+                        TokenManager.saveToken(context, token)
+
+                        // Navigate to HomeView and clear back stack
+                        navController.navigate("HomeView") {
+                            // Clear the back stack
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            }
+                        }
+                    } else {
+                        errorMessage = "Login failed"
+                    }
+
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Sign Up")
-        }
-        if (isSigningUp) {
-            // Optionally show a loading indicator or message while signing up
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
         }
     }
 }

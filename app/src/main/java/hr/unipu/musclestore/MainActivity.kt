@@ -221,7 +221,7 @@ class MainActivity : ComponentActivity() {
                                 ProfileView(navController = navController)
                             }
                             composable("SignUpView") {
-                                SignUpScreen()
+                                SignUpScreen(navController = navController)
                             }
                             composable("LoginView") {
                                 LoginScreen(navController = navController)

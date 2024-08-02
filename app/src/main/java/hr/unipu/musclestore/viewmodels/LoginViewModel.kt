@@ -1,3 +1,4 @@
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -38,13 +39,14 @@ class LoginViewModel : ViewModel() {
             try {
                 client.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
-                        response.body?.string()
+                        response.body?.string()?: "Success with empty body"
                     } else {
-                        null
+                        "Failed with response code ${response.code}, message: ${response.message}"
                     }
                 }
             } catch (e: IOException) {
-                null
+                Log.e("loginViewModel", "Exception during login request: ${e.message}")
+                "Exception: ${e.message}"
             }
         }
     }

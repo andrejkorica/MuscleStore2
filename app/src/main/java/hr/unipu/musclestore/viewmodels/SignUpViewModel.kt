@@ -17,11 +17,12 @@ import java.io.IOException
 class SignUpViewModel : ViewModel() {
     private val client = OkHttpClient()
 
-    fun signUp(firstName: String, lastName: String, email: String, password: String) {
+    fun signUp(firstName: String, lastName: String, email: String, password: String, onTokenReceived: (String?) -> Unit) {
         viewModelScope.launch {
-            Log.d("SignUpViewModel", "Attempting to sign up with email: $email")
             val response = signUpRequest(firstName, lastName, email, password)
             Log.d("SignUpViewModel", "Sign up response: $response")
+            val token = response?.let { JSONObject(it).optString("token") }
+            onTokenReceived(token)
         }
     }
 
@@ -41,9 +42,7 @@ class SignUpViewModel : ViewModel() {
                 .build()
 
             try {
-                Log.d("SignUpViewModel", "Sending request to ${request.url}")
                 client.newCall(request).execute().use { response ->
-                    Log.d("SignUpViewModel", "Response received with code ${response.code}")
                     if (response.isSuccessful) {
                         response.body?.string() ?: "Success with empty body"
                     } else {
