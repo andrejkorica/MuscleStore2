@@ -15,11 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import hr.unipu.musclestore.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlansScreen() {
+fun PlansScreen(navController: NavController) { // Add navController parameter
     var text by remember { mutableStateOf("") }
     var showFilterDialog by remember { mutableStateOf(false) }
 
@@ -138,7 +139,7 @@ fun PlansScreen() {
 
             // ADD button
             FloatingActionButton(
-                onClick = { /* Handle plus button click */ },
+                onClick = { navController.navigate("AddPlanScreen") }, // Navigate to AddPlanScreen
                 modifier = Modifier
                     .padding(16.dp)
                     .align(Alignment.BottomEnd)

@@ -58,6 +58,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import hr.unipu.musclestore.data.CalendarInput
 import hr.unipu.musclestore.ui.theme.MuscleStoreTheme
+import hr.unipu.musclestore.views.AddPlanScreen
 import hr.unipu.musclestore.views.AuthScreen
 import hr.unipu.musclestore.views.CalendarView
 import hr.unipu.musclestore.views.HomeScreen
@@ -226,7 +227,10 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                                 composable("PlansView") {
-                                    PlansScreen()
+                                    PlansScreen(navController = navController) // Pass navController
+                                }
+                                composable("AddPlanScreen") { // Corrected the route name
+                                    AddPlanScreen()
                                 }
                                 composable("StoreView") {
                                     StoreScreen()
@@ -248,6 +252,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 
 // Extension function to get shared view model
 @Composable
