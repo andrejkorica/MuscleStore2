@@ -1,10 +1,8 @@
 package hr.unipu.musclestore.views
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -64,9 +62,7 @@ fun SignUpScreen(viewModel: SignUpViewModel = viewModel(), navController: NavCon
                         // Save the token
                         TokenManager.saveToken(context, token)
 
-                        // Navigate to HomeView and clear back stack
                         navController.navigate("HomeView") {
-                            // Clear the back stack
                             popUpTo(navController.graph.startDestinationId) {
                                 inclusive = true
                             }
