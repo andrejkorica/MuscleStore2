@@ -230,7 +230,7 @@ class MainActivity : ComponentActivity() {
                                     PlansScreen(navController = navController) // Pass navController
                                 }
                                 composable("AddPlanScreen") { // Corrected the route name
-                                    AddPlanScreen()
+                                    AddPlanScreen(navController = navController)
                                 }
                                 composable("StoreView") {
                                     StoreScreen()
