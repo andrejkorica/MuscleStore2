@@ -1,35 +1,66 @@
 package hr.unipu.musclestore.views
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import hr.unipu.musclestore.composables.Table
+import hr.unipu.musclestore.viewmodel.Exercise
+import hr.unipu.musclestore.viewmodel.Section
+import hr.unipu.musclestore.viewmodel.WorkoutPlanViewModel
 
 @Composable
 fun AddPlanScreen(navController: NavController) {
+    val workoutPlanViewModel: WorkoutPlanViewModel = viewModel()
     var planName by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
-    // State to manage the list of tables
     var tables by remember { mutableStateOf(listOf(listOf("", ""))) }
     var headers by remember { mutableStateOf(listOf("")) }
+
+    fun sendData() {
+        val sections = headers.mapIndexed { index, header ->
+            Section(
+                title = header,
+                exercises = tables[index].chunked(2).map { pair ->
+                    Exercise(
+                        title = pair.getOrNull(0) ?: "",
+                        reps = pair.getOrNull(1) ?: "" // Store reps as a string
+                    )
+                }
+
+            )
+        }
+
+        workoutPlanViewModel.sendWorkoutPlan(context, 15, planName, sections) { success, message ->
+            if (success) {
+                // Show success message
+                Toast.makeText(context, "Success!", Toast.LENGTH_SHORT).show()
+                // Navigate to the plans screen
+                navController.navigate("PlansView") // Replace with your actual route
+            } else {
+                // Show error message
+                message?.let { Toast.makeText(context, "Error: $it", Toast.LENGTH_LONG).show() }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -63,7 +94,6 @@ fun AddPlanScreen(navController: NavController) {
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .focusRequester(focusRequester)
                         .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 12.dp)
                 )
             }
@@ -83,6 +113,13 @@ fun AddPlanScreen(navController: NavController) {
                                 val updatedHeaders = headers.toMutableList()
                                 updatedHeaders[index] = newHeader
                                 headers = updatedHeaders
+                            },
+                            onRowChange = { rowIndex, value ->
+                                val updatedTableRows = tables.toMutableList()
+                                val updatedRows = updatedTableRows[index].toMutableList()
+                                updatedRows[rowIndex] = value
+                                updatedTableRows[index] = updatedRows
+                                tables = updatedTableRows
                             },
                             onAddRow = {
                                 val updatedTableRows = tables.toMutableList()
@@ -147,7 +184,7 @@ fun AddPlanScreen(navController: NavController) {
 
         // Checkmark Button
         FloatingActionButton(
-            onClick = { /* Handle save action */ },
+            onClick = { sendData() },
             modifier = Modifier
                 .padding(16.dp)
                 .align(Alignment.BottomEnd),

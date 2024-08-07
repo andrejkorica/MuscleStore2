@@ -1,17 +1,9 @@
 package hr.unipu.musclestore.composables
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -25,7 +17,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Table(header: String, rows: List<String>, onHeaderChange: (String) -> Unit, onAddRow: () -> Unit, onDeleteRow: (Int) -> Unit) {
+fun Table(
+    header: String,
+    rows: List<String>,
+    onHeaderChange: (String) -> Unit,
+    onRowChange: (Int, String) -> Unit,
+    onAddRow: () -> Unit,
+    onDeleteRow: (Int) -> Unit
+) {
     val cellValues = remember { mutableStateListOf(*rows.toTypedArray()) }
     var rowCount by remember { mutableIntStateOf(rows.size / 2) }
     val focusManager = LocalFocusManager.current
@@ -63,7 +62,10 @@ fun Table(header: String, rows: List<String>, onHeaderChange: (String) -> Unit, 
                 // Left TextField (Exercise Name)
                 TextField(
                     value = cellValues[exerciseIndex],
-                    onValueChange = { cellValues[exerciseIndex] = it },
+                    onValueChange = {
+                        cellValues[exerciseIndex] = it
+                        onRowChange(exerciseIndex, it)
+                    },
                     label = { Text("Exercise") },
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = ImeAction.Done // Set the IME action to Done
@@ -81,7 +83,10 @@ fun Table(header: String, rows: List<String>, onHeaderChange: (String) -> Unit, 
                 // Right TextField (Sets/Reps)
                 TextField(
                     value = cellValues[setsRepsIndex],
-                    onValueChange = { cellValues[setsRepsIndex] = it },
+                    onValueChange = {
+                        cellValues[setsRepsIndex] = it
+                        onRowChange(setsRepsIndex, it)
+                    },
                     label = { Text("Sets/Reps") },
                     keyboardOptions = KeyboardOptions.Default.copy(
                         imeAction = ImeAction.Done // Set the IME action to Done
@@ -121,6 +126,9 @@ fun Table(header: String, rows: List<String>, onHeaderChange: (String) -> Unit, 
                     if (rowCount > 1) {
                         onDeleteRow(rowCount - 1)
                         rowCount--
+                        val indexToRemove = rowCount * 2
+                        cellValues.removeAt(indexToRemove + 1)
+                        cellValues.removeAt(indexToRemove)
                     }
                 },
                 enabled = rowCount > 1,
