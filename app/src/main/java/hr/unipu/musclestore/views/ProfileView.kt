@@ -1,7 +1,15 @@
 package hr.unipu.musclestore.views
 
 import TokenManager
+import android.app.Activity
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -10,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -17,10 +26,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import hr.unipu.musclestore.R
+import java.io.IOException
 
 @Composable
 fun ProfileView(navController: NavController) {
     val context = LocalContext.current
+    var profileImageUri by remember { mutableStateOf<Uri?>(null) }
+    var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    // Launcher for selecting an image from the gallery
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            profileImageUri = it
+            try {
+                profileBitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -40,21 +66,45 @@ fun ProfileView(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Image on the left
-                    Image(
-                        painter = painterResource(id = R.drawable.me), // Replace with your image resource
-                        contentDescription = "Profile Picture",
-                        modifier = Modifier
-                            .size(168.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.clickable {
+                            launcher.launch("image/*")
+                        }
+                    ) {
+
+                        // Image on the left, clickable to change profile picture
+                        if (profileBitmap != null) {
+                            Image(
+                                bitmap = profileBitmap!!.asImageBitmap(),
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier
+                                    .size(168.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                            )
+                        } else {
+                            Image(
+                                painter = painterResource(id = R.drawable.me), // Replace with your image resource
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier
+                                    .size(168.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+
+                    }
 
                     Spacer(modifier = Modifier.width(16.dp))
 
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
-                        modifier = Modifier.weight(1f).fillMaxWidth()
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
                     ) {
                         // Text with name
                         Text(
@@ -114,7 +164,7 @@ fun ProfileView(navController: NavController) {
                         Text(text = "Streak: 57 days", fontSize = 16.sp)
                         Text(text = "Median per week: 3 days", fontSize = 16.sp)
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         // Separator Line
                         Divider(color = Color.Gray, thickness = 1.dp)

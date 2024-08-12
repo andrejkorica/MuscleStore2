@@ -121,7 +121,6 @@ fun StoreScreen() {
                 headerText = "Header Text",
                 createdAt = "28 Feb 2024",
                 postedBy = "Dominik Ruzic",
-                downloads = 156
             )
         }
 

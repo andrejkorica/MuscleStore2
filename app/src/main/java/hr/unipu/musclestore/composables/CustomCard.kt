@@ -28,7 +28,6 @@ fun CustomCard(
     headerText: String,
     createdAt: String,
     postedBy: String,
-    downloads: Int
 ) {
     Card(
         modifier = Modifier
@@ -61,13 +60,11 @@ fun CustomCard(
                 Column {
                     Text("Created at:")
                     Text("Posted by:")
-                    Text("Downloads:")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
                     Text(createdAt)
                     Text(postedBy)
-                    Text(downloads.toString())
                 }
             }
         }

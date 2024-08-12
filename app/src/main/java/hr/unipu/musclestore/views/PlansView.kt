@@ -69,7 +69,6 @@ fun PlansScreen(navController: NavController) { // Add navController parameter
                     headerText = "Header Text",
                     createdAt = "28 Feb 2024",
                     postedBy = "Dominik Ruzic",
-                    downloads = 156
                 )
             }
         }
@@ -132,7 +131,6 @@ fun PlansScreen(navController: NavController) { // Add navController parameter
                         headerText = "Header Text",
                         createdAt = "28 Feb 2024",
                         postedBy = "Dominik Ruzic",
-                        downloads = 156
                     )
                 }
             }
