@@ -49,7 +49,7 @@ fun AddPlanScreen(navController: NavController) {
             )
         }
 
-        workoutPlanViewModel.sendWorkoutPlan(context, 15, planName, sections) { success, message ->
+        workoutPlanViewModel.sendWorkoutPlan(context, planName, sections) { success, message ->
             if (success) {
                 // Show success message
                 Toast.makeText(context, "Success!", Toast.LENGTH_SHORT).show()

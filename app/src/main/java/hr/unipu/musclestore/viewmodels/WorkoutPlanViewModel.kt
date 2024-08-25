@@ -24,7 +24,6 @@ class WorkoutPlanViewModel : ViewModel() {
 
     fun sendWorkoutPlan(
         context: Context,
-        userId: Int,
         title: String,
         sections: List<Section>,
         callback: (Boolean, String?) -> Unit
@@ -32,21 +31,19 @@ class WorkoutPlanViewModel : ViewModel() {
         val token = TokenManager.getToken(context)
 
         viewModelScope.launch {
-            val response = sendWorkoutPlanRequest(userId, title, sections, token)
+            val response = sendWorkoutPlanRequest(title, sections, token)
             val success = response != null && response.isNotEmpty()
             callback(success, response)
         }
     }
 
     private suspend fun sendWorkoutPlanRequest(
-        userId: Int,
         title: String,
         sections: List<Section>,
         token: String?
     ): String? {
         return withContext(Dispatchers.IO) {
             val json = JSONObject().apply {
-                put("userId", userId)
                 put("title", title)
                 put("sections", JSONArray().apply {
                     sections.forEach { section ->

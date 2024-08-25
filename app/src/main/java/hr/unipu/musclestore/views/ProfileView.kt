@@ -1,11 +1,11 @@
 package hr.unipu.musclestore.views
 
 import TokenManager
-import android.app.Activity
-import android.content.Intent
+import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -24,15 +24,20 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import hr.unipu.musclestore.R
+import hr.unipu.musclestore.viewmodel.ProfileViewModel
+import kotlinx.coroutines.launch
 import java.io.IOException
 
 @Composable
 fun ProfileView(navController: NavController) {
     val context = LocalContext.current
+    val profileViewModel: ProfileViewModel = viewModel()
     var profileImageUri by remember { mutableStateOf<Uri?>(null) }
     var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     // Launcher for selecting an image from the gallery
     val launcher = rememberLauncherForActivityResult(
@@ -42,8 +47,20 @@ fun ProfileView(navController: NavController) {
             profileImageUri = it
             try {
                 profileBitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+                profileBitmap?.let { bitmap ->
+                    coroutineScope.launch {
+                        profileViewModel.uploadProfilePicture(context, bitmap) { success, response ->
+                            if (success) {
+                                Toast.makeText(context, "Profile picture updated successfully!", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, response ?: "Failed to upload profile picture.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
             } catch (e: IOException) {
                 e.printStackTrace()
+                Toast.makeText(context, "Error processing image.", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -93,8 +110,6 @@ fun ProfileView(navController: NavController) {
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
-
-
                     }
 
                     Spacer(modifier = Modifier.width(16.dp))
