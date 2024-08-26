@@ -1,9 +1,10 @@
 package hr.unipu.musclestore.views
 
-import hr.unipu.musclestore.composables.CustomCard
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -14,15 +15,39 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.core.content.ContextCompat
 import hr.unipu.musclestore.R
+import hr.unipu.musclestore.composables.CustomCard
+import hr.unipu.musclestore.utils.Base64Manager.decodeBase64ToBitmap
+import hr.unipu.musclestore.utils.Base64Manager.drawableToBitmap
+import hr.unipu.musclestore.viewmodel.WorkoutPlan
+import hr.unipu.musclestore.viewmodel.WorkoutPlanViewModel
+import hr.unipu.musclestore.viewmodel.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlansScreen(navController: NavController) { // Add navController parameter
+fun PlansScreen(navController: NavController) {
+    val workoutPlanViewModel: WorkoutPlanViewModel = viewModel()
+    val context = LocalContext.current
+
     var text by remember { mutableStateOf("") }
     var showFilterDialog by remember { mutableStateOf(false) }
+    var workoutPlans by remember { mutableStateOf<List<WorkoutPlan>>(emptyList()) }
+    var user by remember { mutableStateOf<User?>(null) }
+
+    LaunchedEffect(Unit) {
+        workoutPlanViewModel.getWorkoutPlansForUser(context) { plans, fetchedUser, _ ->
+            workoutPlans = plans ?: emptyList()
+            user = fetchedUser
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -44,7 +69,7 @@ fun PlansScreen(navController: NavController) { // Add navController parameter
                         query = text,
                         onQueryChange = { text = it },
                         onSearch = { /* Handle search action */ },
-                        active = false, // This should be handled internally by SearchBar
+                        active = false,
                         onActiveChange = { /* Handle active state change */ },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search icon") },
                         modifier = Modifier.weight(1f),
@@ -64,22 +89,21 @@ fun PlansScreen(navController: NavController) { // Add navController parameter
                     style = MaterialTheme.typography.headlineMedium
                 )
 
+                // Example active plan card
                 CustomCard(
-                    imageUrl = R.drawable.lifter, // Replace with your actual drawable resource id
-                    headerText = "Header Text",
-                    createdAt = "28 Feb 2024",
-                    postedBy = "Dominik Ruzic",
+                    imageBitmap = ImageBitmap.imageResource(id = R.drawable.lifter), // Placeholder image
+                    headerText = "Example Header",
+                    createdAt = "WIP",
+                    postedBy = "Example User",
                 )
             }
         }
 
-        // Dialog modal
         if (showFilterDialog) {
             AlertDialog(
                 onDismissRequest = { showFilterDialog = false },
-                shape = RoundedCornerShape(12.dp), // Rounded corners
+                shape = RoundedCornerShape(12.dp),
                 containerColor = Color.White,
-
                 text = {
                     Column(
                         modifier = Modifier
@@ -112,8 +136,6 @@ fun PlansScreen(navController: NavController) { // Add navController parameter
             )
         }
 
-
-
         Box(
             modifier = Modifier
                 .background(Color.LightGray)
@@ -121,29 +143,38 @@ fun PlansScreen(navController: NavController) { // Add navController parameter
                 .fillMaxHeight()
                 .weight(1f)
         ) {
-
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(5) {
+                items(workoutPlans) { plan ->
+                    // Decode the user's profile picture from Base64 to Bitmap
+                    val userImageBitmap = user?.profilePicture?.let { profilePictureBase64 ->
+                        decodeBase64ToBitmap(profilePictureBase64)?.asImageBitmap()
+                    }
+
+                    // Fallback to default image if decoding fails
+                    val imageBitmap = userImageBitmap ?: ImageBitmap.imageResource(id = R.drawable.lifter)
+
+                    // Get the first exercise and its title
+                    val section = plan.sections.firstOrNull()
+                    val exercise = section?.exercises?.firstOrNull()
+
                     CustomCard(
-                        imageUrl = R.drawable.lifter, // Replace with your actual drawable resource id
-                        headerText = "Header Text",
-                        createdAt = "28 Feb 2024",
-                        postedBy = "Dominik Ruzic",
+                        imageBitmap = imageBitmap, // Use the decoded user profile image or fallback
+                        headerText = exercise?.title ?: "No Exercise", // Use exercise title or default
+                        createdAt = "WIP", // You can update this with actual date
+                        postedBy = "${user?.firstName} ${user?.lastName}", // User's name
                     )
                 }
             }
 
-            // ADD button
             FloatingActionButton(
-                onClick = { navController.navigate("AddPlanScreen") }, // Navigate to AddPlanScreen
+                onClick = { navController.navigate("AddPlanScreen") },
                 modifier = Modifier
                     .padding(16.dp)
                     .align(Alignment.BottomEnd)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add")
-
             }
         }
     }

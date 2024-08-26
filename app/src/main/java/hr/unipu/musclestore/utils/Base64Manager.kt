@@ -2,10 +2,32 @@ package hr.unipu.musclestore.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.util.Base64
 import java.io.ByteArrayOutputStream
 
 object Base64Manager {
+
+    // Convert a Drawable to a Bitmap
+    fun drawableToBitmap(drawable: Drawable): Bitmap? {
+        return if (drawable is BitmapDrawable) {
+            drawable.bitmap
+        } else {
+            // Create a Bitmap with the same dimensions as the Drawable
+            val bitmap = Bitmap.createBitmap(
+                drawable.intrinsicWidth,
+                drawable.intrinsicHeight,
+                Bitmap.Config.ARGB_8888
+            )
+            // Create a Canvas to draw the Drawable onto the Bitmap
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+            bitmap
+        }
+    }
 
     // Encode a Bitmap to Base64 string
     fun encodeBitmapToBase64(bitmap: Bitmap): String {

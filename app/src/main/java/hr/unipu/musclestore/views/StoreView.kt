@@ -1,43 +1,40 @@
 package hr.unipu.musclestore.views
 
-import hr.unipu.musclestore.composables.CustomCard
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import hr.unipu.musclestore.R
+import hr.unipu.musclestore.composables.CustomCard
+import hr.unipu.musclestore.utils.Base64Manager.drawableToBitmap
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StoreScreen() {
+    val context = LocalContext.current
     var text by remember { mutableStateOf("") }
     var showFilterDialog by remember { mutableStateOf(false) }
+
+    // Convert drawable resource to Drawable
+    val lifterDrawable: Drawable? = ContextCompat.getDrawable(context, R.drawable.lifter)
+
+    // Convert Drawable to Bitmap and then to ImageBitmap
+    val imageBitmap = lifterDrawable?.let { drawableToBitmap(it)?.asImageBitmap() }
+        ?: ImageBitmap.imageResource(id = R.drawable.lifter) // Fallback if conversion fails
 
     Column(
         modifier = Modifier
@@ -59,7 +56,7 @@ fun StoreScreen() {
                         query = text,
                         onQueryChange = { text = it },
                         onSearch = { /* Handle search action */ },
-                        active = false, // This should be handled internally by SearchBar
+                        active = false,
                         onActiveChange = { /* Handle active state change */ },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search icon") },
                         modifier = Modifier.weight(1f),
@@ -72,7 +69,6 @@ fun StoreScreen() {
                         Icon(Icons.Default.List, contentDescription = "Filter")
                     }
                 }
-
             }
         }
 
@@ -82,7 +78,6 @@ fun StoreScreen() {
                 onDismissRequest = { showFilterDialog = false },
                 shape = RoundedCornerShape(12.dp), // Rounded corners
                 containerColor = Color.White,
-
                 text = {
                     Column(
                         modifier = Modifier
@@ -114,16 +109,20 @@ fun StoreScreen() {
                 dismissButton = {}
             )
         }
-        Box(modifier = Modifier.background(Color.LightGray).padding(8.dp).fillMaxHeight()) {
+
+        Box(
+            modifier = Modifier
+                .background(Color.LightGray)
+                .padding(8.dp)
+                .fillMaxHeight()
+        ) {
             // non-active card
             CustomCard(
-                imageUrl = R.drawable.lifter, // Replace with your actual drawable resource id
+                imageBitmap = imageBitmap, // Pass the ImageBitmap here
                 headerText = "Header Text",
                 createdAt = "28 Feb 2024",
                 postedBy = "Dominik Ruzic",
             )
         }
-
-
     }
 }
