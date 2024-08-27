@@ -28,13 +28,20 @@ class ProfileViewModel : ViewModel() {
         callback: (User?, String?) -> Unit
     ) {
         val token = TokenManager.getToken(context)  // Retrieve the token from TokenManager
-
         viewModelScope.launch {
-            val response = fetchUserDataRequest(token)
-            if (response != null) {
-                callback(response, null)
-            } else {
-                callback(null, "Failed to fetch user data.")
+            try {
+                val response = fetchUserDataRequest(token)
+
+                // Log whether response is successful or not
+                if (response != null) {
+                    callback(response, null)
+                } else {
+                    callback(null, "Failed to fetch user data.")
+                }
+            } catch (e: Exception) {
+                // Log any exception that occurs during the process
+                Log.e("ProfileViewModel", "Exception during fetching user data: ${e.message}")
+                callback(null, "Exception during fetching user data: ${e.message}")
             }
         }
     }
@@ -48,19 +55,30 @@ class ProfileViewModel : ViewModel() {
                 .build()
 
             try {
+                Log.d("ProfileViewModel", "Sending request to: ${request.url}")
+
                 client.newCall(request).execute().use { response ->
+                    // Log response details
                     Log.d("ProfileViewModel", "Response Code: ${response.code}")
                     Log.d("ProfileViewModel", "Response Message: ${response.message}")
 
+                    // Log response body if not null
+                    val responseBody = response.body?.string()
+                    if (responseBody != null) {
+                        Log.d("ProfileViewModel", "Response Body: $responseBody")
+                    } else {
+                        Log.d("ProfileViewModel", "Response Body is null")
+                    }
+
+                    // Parse and return user data
                     if (response.isSuccessful) {
-                        val responseBody = response.body?.string() ?: return@use null
-                        return@use parseUserFromJson(responseBody)
+                        return@use responseBody?.let { parseUserFromJson(it) }
                     } else {
                         null
                     }
                 }
             } catch (e: IOException) {
-                Log.e("ProfileViewModel", "Exception during fetch user data request: ${e.message}")
+                Log.e("ProfileViewModel", "Exception during fetch user data request: ${e.message}", e)
                 null
             }
         }
@@ -70,10 +88,16 @@ class ProfileViewModel : ViewModel() {
         val gson = Gson()
 
         return try {
+            Log.d("ProfileViewModel", "Parsing JSON: $json")
+
+            // Convert JSON string to JsonObject
             val jsonObject = gson.fromJson(json, JsonObject::class.java)
-            val firstName = jsonObject.get("firstName")?.asString
-            val email = jsonObject.get("email")?.asString
-            val profilePicture = jsonObject.get("profilePicture")?.asString
+            Log.d("ProfileViewModel", "Parsed JSON Object: $jsonObject")
+
+            // Extract fields from the JSON object
+            val firstName = jsonObject.get("firstName")?.takeIf { !it.isJsonNull }?.asString
+            val email = jsonObject.get("email")?.takeIf { !it.isJsonNull }?.asString
+            val profilePicture = jsonObject.get("profilePicture")?.takeIf { !it.isJsonNull }?.asString
 
             if (firstName != null && email != null) {
                 User(
@@ -83,15 +107,21 @@ class ProfileViewModel : ViewModel() {
                     email = email,
                     password = "", // Not needed for this view
                     profilePicture = profilePicture
-                )
+                ).also {
+                    Log.d("ProfileViewModel", "Successfully created User object: $it")
+                }
             } else {
+                Log.e("ProfileViewModel", "Required fields are missing: firstName or email is null")
                 null
             }
         } catch (e: Exception) {
-            Log.e("ProfileViewModel", "Exception during JSON parsing: ${e.message}")
+            Log.e("ProfileViewModel", "Exception during JSON parsing: ${e.message}", e)
             null
         }
     }
+
+
+
 
     // Upload profile picture
     fun uploadProfilePicture(

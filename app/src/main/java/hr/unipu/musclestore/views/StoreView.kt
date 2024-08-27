@@ -18,16 +18,34 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import hr.unipu.musclestore.R
 import hr.unipu.musclestore.composables.CustomCard
 import hr.unipu.musclestore.utils.Base64Manager.drawableToBitmap
+import hr.unipu.musclestore.viewmodel.ProfileViewModel
+import hr.unipu.musclestore.viewmodel.User
+import hr.unipu.musclestore.viewmodels.StoreViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StoreScreen() {
+fun StoreScreen(
+    storeViewModel: StoreViewModel = viewModel(),
+    profileViewModel: ProfileViewModel = viewModel()
+) {
     val context = LocalContext.current
     var text by remember { mutableStateOf("") }
     var showFilterDialog by remember { mutableStateOf(false) }
+    var currentUser by remember { mutableStateOf<User?>(null) }
+
+    // Fetch the current user data
+    LaunchedEffect(Unit) {
+        profileViewModel.fetchUserData(context) { user, error ->
+            if (user != null) {
+                currentUser = user
+            }
+        }
+        storeViewModel.fetchAllWorkoutPlans(context)
+    }
 
     // Convert drawable resource to Drawable
     val lifterDrawable: Drawable? = ContextCompat.getDrawable(context, R.drawable.lifter)
@@ -115,14 +133,21 @@ fun StoreScreen() {
                 .background(Color.LightGray)
                 .padding(8.dp)
                 .fillMaxHeight()
+                .fillMaxWidth()
         ) {
-            // non-active card
-            CustomCard(
-                imageBitmap = imageBitmap, // Pass the ImageBitmap here
-                headerText = "Header Text",
-                createdAt = "28 Feb 2024",
-                postedBy = "Dominik Ruzic",
-            )
+            // Display all workout plans except those of the current user
+            Column {
+                storeViewModel.workoutPlans.filter { workoutPlan ->
+                    workoutPlan.user.email != currentUser?.email // Filter out the current user's posts
+                }.forEach { workoutPlan ->
+                    CustomCard(
+                        imageBitmap = imageBitmap, // Pass the ImageBitmap here
+                        headerText = workoutPlan.title, // Set the workout title
+                        createdAt = "28 Feb 2024", // Replace with actual date if available
+                        postedBy = "${workoutPlan.user.firstName} ${workoutPlan.user.lastName}", // Set the user's name
+                    )
+                }
+            }
         }
     }
 }
