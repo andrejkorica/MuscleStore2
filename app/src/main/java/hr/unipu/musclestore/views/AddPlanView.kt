@@ -20,14 +20,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import hr.unipu.musclestore.composables.Table
-import hr.unipu.musclestore.viewmodel.Exercise
-import hr.unipu.musclestore.viewmodel.Section
+import hr.unipu.musclestore.data.Exercise
+import hr.unipu.musclestore.data.Section
 import hr.unipu.musclestore.viewmodel.WorkoutPlanViewModel
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun AddPlanScreen(navController: NavController) {
     val workoutPlanViewModel: WorkoutPlanViewModel = viewModel()
     var planName by remember { mutableStateOf("") }
+    var timestamp by remember { mutableStateOf("") } // Initialize timestamp as empty
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -45,11 +48,13 @@ fun AddPlanScreen(navController: NavController) {
                         reps = pair.getOrNull(1) ?: "" // Store reps as a string
                     )
                 }
-
             )
         }
 
-        workoutPlanViewModel.sendWorkoutPlan(context, planName, sections) { success, message ->
+        // Capture the current timestamp when sending data
+        timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+        workoutPlanViewModel.sendWorkoutPlan(context, planName, sections, timestamp) { success, message ->
             if (success) {
                 // Show success message
                 Toast.makeText(context, "Success!", Toast.LENGTH_SHORT).show()

@@ -1,6 +1,5 @@
 package hr.unipu.musclestore.viewmodels
 
-
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -10,10 +9,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.google.gson.JsonArray
-import hr.unipu.musclestore.viewmodel.Exercise
-import hr.unipu.musclestore.viewmodel.Section
-import hr.unipu.musclestore.viewmodel.User
-import hr.unipu.musclestore.viewmodel.WorkoutPlan
+import com.google.gson.JsonObject
+import com.google.gson.JsonNull
+import hr.unipu.musclestore.data.Exercise
+import hr.unipu.musclestore.data.Section
+import hr.unipu.musclestore.data.User
+import hr.unipu.musclestore.data.WorkoutPlan
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,6 +29,7 @@ class StoreViewModel : ViewModel() {
     var workoutPlans: List<WorkoutPlan> by mutableStateOf(emptyList())
         private set
 
+    // Fetch all workout plans from the server
     fun fetchAllWorkoutPlans(context: Context) {
         val token = TokenManager.getToken(context)
 
@@ -37,6 +39,7 @@ class StoreViewModel : ViewModel() {
         }
     }
 
+    // Make network request to fetch all workout plans
     private suspend fun getAllWorkoutPlansRequest(token: String?): String? {
         return withContext(Dispatchers.IO) {
             val request = Request.Builder()
@@ -61,6 +64,7 @@ class StoreViewModel : ViewModel() {
         }
     }
 
+    // Parse JSON response to create a list of WorkoutPlan objects
     private fun parseWorkoutPlansFromJson(json: String?): List<WorkoutPlan> {
         return if (json.isNullOrEmpty()) {
             emptyList()
@@ -72,13 +76,15 @@ class StoreViewModel : ViewModel() {
 
                     // Parse User
                     val userJson = jsonObject.getAsJsonObject("user")
+                    val profilePicture = userJson.get("profilePicture")?.takeIf { it.isJsonPrimitive }?.asString
+
                     val user = User(
                         userId = userJson.get("userId").asInt,
                         email = userJson.get("email").asString,
                         firstName = userJson.get("firstName").asString,
                         lastName = userJson.get("lastName").asString,
                         password = "",
-                        profilePicture = userJson.get("profilePicture").asString
+                        profilePicture = profilePicture // Safely parsed profile picture
                     )
 
                     // Parse Sections
@@ -100,11 +106,13 @@ class StoreViewModel : ViewModel() {
                         )
                     }
 
+                    // Parse WorkoutPlan including the timestamp
                     WorkoutPlan(
                         planId = jsonObject.get("planId").asInt,
                         title = jsonObject.get("title").asString,
                         user = user,
-                        sections = sections
+                        sections = sections,
+                        timestamp = jsonObject.get("timestamp")?.asString // Parse timestamp safely
                     )
                 }
             } catch (e: Exception) {
@@ -113,4 +121,5 @@ class StoreViewModel : ViewModel() {
             }
         }
     }
+
 }

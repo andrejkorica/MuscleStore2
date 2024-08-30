@@ -25,11 +25,11 @@ import androidx.navigation.NavController
 import androidx.core.content.ContextCompat
 import hr.unipu.musclestore.R
 import hr.unipu.musclestore.composables.CustomCard
+import hr.unipu.musclestore.data.User
+import hr.unipu.musclestore.data.WorkoutPlan
 import hr.unipu.musclestore.utils.Base64Manager.decodeBase64ToBitmap
-import hr.unipu.musclestore.utils.Base64Manager.drawableToBitmap
-import hr.unipu.musclestore.viewmodel.WorkoutPlan
+import hr.unipu.musclestore.utils.TimestampManager
 import hr.unipu.musclestore.viewmodel.WorkoutPlanViewModel
-import hr.unipu.musclestore.viewmodel.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,22 +147,22 @@ fun PlansScreen(navController: NavController) {
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(workoutPlans) { plan ->
-                    // Decode the user's profile picture from Base64 to Bitmap
-                    val userImageBitmap = user?.profilePicture?.let { profilePictureBase64 ->
+                    // Decode the user's profile picture from Base64 to Bitmap or use fallback
+                    val imageBitmap = user?.profilePicture?.let { profilePictureBase64 ->
                         decodeBase64ToBitmap(profilePictureBase64)?.asImageBitmap()
-                    }
-
-                    // Fallback to default image if decoding fails
-                    val imageBitmap = userImageBitmap ?: ImageBitmap.imageResource(id = R.drawable.lifter)
+                    } ?: ImageBitmap.imageResource(id = R.drawable.lifter) // Fallback image if null
 
                     // Get the first exercise and its title
                     val section = plan.sections.firstOrNull()
                     val exercise = section?.exercises?.firstOrNull()
 
+                    // Use formatted timestamp
+                    val formattedTimestamp = TimestampManager.formatTimestamp(plan.timestamp)
+
                     CustomCard(
                         imageBitmap = imageBitmap, // Use the decoded user profile image or fallback
                         headerText = exercise?.title ?: "No Exercise", // Use exercise title or default
-                        createdAt = "WIP", // You can update this with actual date
+                        createdAt = formattedTimestamp, // Display the formatted timestamp
                         postedBy = "${user?.firstName} ${user?.lastName}", // User's name
                     )
                 }

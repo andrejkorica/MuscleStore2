@@ -28,9 +28,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import hr.unipu.musclestore.R
-import hr.unipu.musclestore.utils.Base64Manager
+import hr.unipu.musclestore.data.User
 import hr.unipu.musclestore.viewmodel.ProfileViewModel
-import hr.unipu.musclestore.viewmodel.User
 import kotlinx.coroutines.launch
 import java.io.IOException
 @Composable

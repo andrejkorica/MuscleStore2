@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import hr.unipu.musclestore.data.User
 import hr.unipu.musclestore.utils.Base64Manager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -121,8 +122,6 @@ class ProfileViewModel : ViewModel() {
     }
 
 
-
-
     // Upload profile picture
     fun uploadProfilePicture(
         context: Context,
@@ -179,12 +178,3 @@ class ProfileViewModel : ViewModel() {
     }
 }
 
-// Data model for user
-data class User(
-    val userId: Int,
-    val firstName: String,
-    val lastName: String,
-    val email: String,
-    val password: String,
-    val profilePicture: String?  // Base64 encoded string
-)

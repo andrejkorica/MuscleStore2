@@ -3,6 +3,8 @@ package hr.unipu.musclestore.views
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
@@ -21,11 +23,12 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import hr.unipu.musclestore.R
 import hr.unipu.musclestore.composables.CustomCard
+import hr.unipu.musclestore.data.User
+import hr.unipu.musclestore.utils.Base64Manager.decodeBase64ToBitmap
 import hr.unipu.musclestore.utils.Base64Manager.drawableToBitmap
+import hr.unipu.musclestore.utils.TimestampManager
 import hr.unipu.musclestore.viewmodel.ProfileViewModel
-import hr.unipu.musclestore.viewmodel.User
 import hr.unipu.musclestore.viewmodels.StoreViewModel
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StoreScreen(
@@ -51,7 +54,7 @@ fun StoreScreen(
     val lifterDrawable: Drawable? = ContextCompat.getDrawable(context, R.drawable.lifter)
 
     // Convert Drawable to Bitmap and then to ImageBitmap
-    val imageBitmap = lifterDrawable?.let { drawableToBitmap(it)?.asImageBitmap() }
+    val defaultImageBitmap = lifterDrawable?.let { drawableToBitmap(it)?.asImageBitmap() }
         ?: ImageBitmap.imageResource(id = R.drawable.lifter) // Fallback if conversion fails
 
     Column(
@@ -135,15 +138,27 @@ fun StoreScreen(
                 .fillMaxHeight()
                 .fillMaxWidth()
         ) {
-            // Display all workout plans except those of the current user
-            Column {
-                storeViewModel.workoutPlans.filter { workoutPlan ->
-                    workoutPlan.user.email != currentUser?.email // Filter out the current user's posts
-                }.forEach { workoutPlan ->
+            // Use LazyColumn to display workout plans
+            LazyColumn {
+                // Ensure currentUser is not null before filtering
+                val filteredPlans = storeViewModel.workoutPlans.filter { workoutPlan ->
+                    workoutPlan.user.email != currentUser?.email
+                }
+
+                // Display workout plans
+                items(filteredPlans) { workoutPlan ->
+                    // Decode the user's profile picture from Base64
+                    val userImageBitmap = workoutPlan.user.profilePicture?.let { profilePictureBase64 ->
+                        decodeBase64ToBitmap(profilePictureBase64)?.asImageBitmap()
+                    }
+
+                    // Use the decoded user image or fallback to the default image
+                    val imageBitmap = userImageBitmap ?: defaultImageBitmap
+
                     CustomCard(
                         imageBitmap = imageBitmap, // Pass the ImageBitmap here
                         headerText = workoutPlan.title, // Set the workout title
-                        createdAt = "28 Feb 2024", // Replace with actual date if available
+                        createdAt = TimestampManager.formatTimestamp(workoutPlan.timestamp), // Format and display the timestamp
                         postedBy = "${workoutPlan.user.firstName} ${workoutPlan.user.lastName}", // Set the user's name
                     )
                 }
@@ -151,3 +166,4 @@ fun StoreScreen(
         }
     }
 }
+

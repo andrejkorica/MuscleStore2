@@ -56,6 +56,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import hr.unipu.musclestore.data.BottomNavigationItem
 import hr.unipu.musclestore.data.CalendarInput
 import hr.unipu.musclestore.ui.theme.MuscleStoreTheme
 import hr.unipu.musclestore.views.AddPlanScreen
@@ -69,11 +70,7 @@ import hr.unipu.musclestore.views.StoreScreen
 import java.time.LocalDate
 import java.util.Locale
 
-data class BottomNavigationItem(
-    val title: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector
-)
+
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
