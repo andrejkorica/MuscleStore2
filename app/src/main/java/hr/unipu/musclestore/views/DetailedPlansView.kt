@@ -31,37 +31,8 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
         }
     }
 
-    if (isLoading) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text("Loading...", style = MaterialTheme.typography.bodyMedium)
-        }
-    } else {
-        workoutPlan?.let { plan ->
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                item {
-                    Text(
-                        text = plan.title,
-                        style = MaterialTheme.typography.headlineMedium,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
-
-                item {
-                    WorkoutTable(plan)
-                }
-
-            }
-        } ?: run {
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (isLoading) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -69,7 +40,70 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text("No data available", style = MaterialTheme.typography.bodyMedium)
+                Text("Loading...", style = MaterialTheme.typography.bodyMedium)
+            }
+        } else {
+            workoutPlan?.let { plan ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .padding(bottom = 72.dp) // Leave space for the buttons
+                ) {
+                    item {
+                        Text(
+                            text = plan.title,
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
+                    item {
+                        WorkoutTable(plan)
+                    }
+
+                    // Add a spacer to push the buttons to the bottom
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    item {
+                        // Buttons as part of the LazyColumn
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                                .height(56.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Button(
+                                onClick = { /* Handle delete action */ },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Delete")
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp)) // Space between buttons
+
+                            Button(
+                                onClick = { /* Handle set as active action */ },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Set as Active")
+                            }
+                        }
+                    }
+                }
+            } ?: run {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text("No data available", style = MaterialTheme.typography.bodyMedium)
+                }
             }
         }
     }
