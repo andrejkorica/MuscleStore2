@@ -1,6 +1,7 @@
 package hr.unipu.musclestore.composables
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -23,24 +24,24 @@ fun CustomCard(
     headerText: String,
     createdAt: String,
     postedBy: String,
+    onClick: () -> Unit // New parameter for handling click events
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(8.dp)
+            .clickable { onClick() }, // Handle click events
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-
+            modifier = Modifier.padding(16.dp)
         ) {
             // Image and Header in a Row
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     bitmap = imageBitmap,
                     contentDescription = null,
-
                     modifier = Modifier
                         .size(64.dp) // Set a small size for the image
                         .clip(RoundedCornerShape(4.dp)),

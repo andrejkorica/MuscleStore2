@@ -159,7 +159,8 @@ fun StoreScreen(
                         imageBitmap = imageBitmap, // Pass the ImageBitmap here
                         headerText = workoutPlan.title, // Set the workout title
                         createdAt = TimestampManager.formatTimestamp(workoutPlan.timestamp), // Format and display the timestamp
-                        postedBy = "${workoutPlan.user.firstName} ${workoutPlan.user.lastName}", // Set the user's name
+                        postedBy = "${workoutPlan.user.firstName} ${workoutPlan.user.lastName}",
+                        onClick = {}
                     )
                 }
             }

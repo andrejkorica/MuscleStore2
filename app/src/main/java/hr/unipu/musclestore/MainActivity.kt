@@ -62,6 +62,7 @@ import hr.unipu.musclestore.ui.theme.MuscleStoreTheme
 import hr.unipu.musclestore.views.AddPlanScreen
 import hr.unipu.musclestore.views.AuthScreen
 import hr.unipu.musclestore.views.CalendarView
+import hr.unipu.musclestore.views.DetailedPlansView
 import hr.unipu.musclestore.views.HomeScreen
 import hr.unipu.musclestore.views.PlansScreen
 import hr.unipu.musclestore.views.ProfileView
@@ -240,6 +241,10 @@ class MainActivity : ComponentActivity() {
                                 }
                                 composable("LoginView") {
                                     LoginScreen(navController = navController)
+                                }
+                                composable("DetailedPlansView/{planId}") { backStackEntry ->
+                                    val planId = backStackEntry.arguments?.getString("planId")
+                                    DetailedPlansView(planId = planId, navController = navController)
                                 }
                             }
                         }

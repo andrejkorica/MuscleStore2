@@ -139,6 +139,46 @@ class WorkoutPlanViewModel : ViewModel() {
         }
     }
 
+    // Function to retrieve a workout plan by ID
+    fun getWorkoutPlanById(
+        context: Context,
+        planId: String,
+        callback: (WorkoutPlan?, String?) -> Unit
+    ) {
+        val token = TokenManager.getToken(context)
+
+        viewModelScope.launch {
+            val response = getWorkoutPlanByIdRequest(planId, token)
+            val workoutPlan = parseWorkoutPlanFromJson(response)
+            val success = workoutPlan != null
+            callback(workoutPlan, response) // Pass both parameters
+        }
+    }
+
+    // Sends the request to retrieve a workout plan by ID
+    private suspend fun getWorkoutPlanByIdRequest(planId: String, token: String?): String? {
+        return withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("http://10.0.2.2:8080/api/workout-plans/$planId")
+                .get()
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+
+            try {
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        response.body?.string()
+                    } else {
+                        "Failed with response code ${response.code}, message: ${response.message}"
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("WorkoutPlanViewModel", "Exception during get workout plan by ID request: ${e.message}")
+                "Exception: ${e.message}"
+            }
+        }
+    }
+
     // Parses the JSON response to create a list of WorkoutPlan objects
     private fun parseWorkoutPlansFromJson(json: String?): List<WorkoutPlan> {
         return if (json.isNullOrEmpty()) {
@@ -148,48 +188,8 @@ class WorkoutPlanViewModel : ViewModel() {
                 val jsonArray = gson.fromJson(json, JsonArray::class.java)
                 jsonArray.map { jsonElement ->
                     val jsonObject = jsonElement.asJsonObject
-
-                    // Parse User
-                    val userJson = jsonObject.getAsJsonObject("user")
-                    val profilePicture = userJson.get("profilePicture")?.takeIf { it.isJsonPrimitive }?.asString
-
-                    val user = User(
-                        userId = userJson.get("userId").asInt,
-                        email = userJson.get("email").asString,
-                        firstName = userJson.get("firstName").asString,
-                        lastName = userJson.get("lastName").asString,
-                        password = "",
-                        profilePicture = profilePicture // Safe parsing of profile picture
-                    )
-
-                    // Parse Sections
-                    val sections = jsonObject.getAsJsonArray("sections").map { sectionElement ->
-                        val sectionObject = sectionElement.asJsonObject
-                        val exercises = sectionObject.getAsJsonArray("exercises").map { exerciseElement ->
-                            val exerciseObject = exerciseElement.asJsonObject
-                            Exercise(
-                                exerciseId = exerciseObject.get("exerciseId").asInt,
-                                title = exerciseObject.get("title").asString,
-                                reps = exerciseObject.get("reps").asString
-                            )
-                        }
-
-                        Section(
-                            sectionId = sectionObject.get("sectionId").asInt,
-                            title = sectionObject.get("title").asString,
-                            exercises = exercises
-                        )
-                    }
-
-                    // Parse WorkoutPlan
-                    WorkoutPlan(
-                        planId = jsonObject.get("planId").asInt,
-                        title = jsonObject.get("title").asString,
-                        user = user,
-                        sections = sections,
-                        timestamp = jsonObject.get("timestamp")?.asString // Added timestamp parsing
-                    )
-                }
+                    parseWorkoutPlanFromJson(jsonObject.toString())
+                }.filterNotNull() // Filter out any null values
             } catch (e: Exception) {
                 Log.e("WorkoutPlanViewModel", "Exception during JSON parsing: ${e.message}")
                 emptyList()
@@ -197,4 +197,58 @@ class WorkoutPlanViewModel : ViewModel() {
         }
     }
 
+    // Parses the JSON response to create a WorkoutPlan object
+    private fun parseWorkoutPlanFromJson(json: String?): WorkoutPlan? {
+        return if (json.isNullOrEmpty()) {
+            null
+        } else {
+            try {
+                val jsonObject = gson.fromJson(json, JsonObject::class.java)
+
+                // Parse User
+                val userJson = jsonObject.getAsJsonObject("user")
+                val profilePicture = userJson.get("profilePicture")?.takeIf { it.isJsonPrimitive }?.asString
+
+                val user = User(
+                    userId = userJson.get("userId").asInt,
+                    email = userJson.get("email").asString,
+                    firstName = userJson.get("firstName").asString,
+                    lastName = userJson.get("lastName").asString,
+                    password = "",
+                    profilePicture = profilePicture // Safe parsing of profile picture
+                )
+
+                // Parse Sections
+                val sections = jsonObject.getAsJsonArray("sections").map { sectionElement ->
+                    val sectionObject = sectionElement.asJsonObject
+                    val exercises = sectionObject.getAsJsonArray("exercises").map { exerciseElement ->
+                        val exerciseObject = exerciseElement.asJsonObject
+                        Exercise(
+                            exerciseId = exerciseObject.get("exerciseId").asInt,
+                            title = exerciseObject.get("title").asString,
+                            reps = exerciseObject.get("reps").asString
+                        )
+                    }
+
+                    Section(
+                        sectionId = sectionObject.get("sectionId").asInt,
+                        title = sectionObject.get("title").asString,
+                        exercises = exercises
+                    )
+                }
+
+                // Parse WorkoutPlan
+                WorkoutPlan(
+                    planId = jsonObject.get("planId").asInt,
+                    title = jsonObject.get("title").asString,
+                    user = user,
+                    sections = sections,
+                    timestamp = jsonObject.get("timestamp")?.asString // Added timestamp parsing
+                )
+            } catch (e: Exception) {
+                Log.e("WorkoutPlanViewModel", "Exception during JSON parsing: ${e.message}")
+                null
+            }
+        }
+    }
 }

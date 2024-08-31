@@ -95,6 +95,7 @@ fun PlansScreen(navController: NavController) {
                     headerText = "Example Header",
                     createdAt = "WIP",
                     postedBy = "Example User",
+                    onClick = {}
                 )
             }
         }
@@ -164,6 +165,10 @@ fun PlansScreen(navController: NavController) {
                         headerText = exercise?.title ?: "No Exercise", // Use exercise title or default
                         createdAt = formattedTimestamp, // Display the formatted timestamp
                         postedBy = "${user?.firstName} ${user?.lastName}", // User's name
+                        onClick = {
+                            // Navigate to DetailedPlansView with the selected plan
+                            navController.navigate("DetailedPlansView/${plan.planId}")
+                        }
                     )
                 }
             }
