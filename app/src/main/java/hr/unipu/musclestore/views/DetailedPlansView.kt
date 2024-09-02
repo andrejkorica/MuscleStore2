@@ -2,9 +2,7 @@ package hr.unipu.musclestore.views
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +19,7 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
     val context = LocalContext.current
     var workoutPlan by remember { mutableStateOf<WorkoutPlan?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) } // For delete confirmation dialog
 
     LaunchedEffect(planId) {
         planId?.let {
@@ -77,7 +76,7 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Button(
-                                onClick = { /* Handle delete action */ },
+                                onClick = { showDeleteConfirmation = true }, // Show confirmation dialog
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text("Delete")
@@ -106,5 +105,39 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
                 }
             }
         }
+    }
+
+    // Delete confirmation dialog
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Delete Workout Plan") },
+            text = { Text("Are you sure you want to delete this workout plan?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        workoutPlan?.let { plan ->
+                            workoutPlanViewModel.deleteWorkoutPlanById(context, plan.planId.toString()) { success, message ->
+                                if (success) {
+                                    navController.popBackStack() // Navigate back after successful deletion
+                                } else {
+                                    // Handle error (e.g., show a Toast or Snackbar)
+                                }
+                            }
+                        }
+                        showDeleteConfirmation = false
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showDeleteConfirmation = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

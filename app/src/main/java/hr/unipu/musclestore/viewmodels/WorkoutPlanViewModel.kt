@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.google.gson.JsonArray
-import com.google.gson.JsonObject
 import com.google.gson.JsonNull
+import com.google.gson.JsonObject
 import hr.unipu.musclestore.data.Exercise
 import hr.unipu.musclestore.data.Section
 import hr.unipu.musclestore.data.User
@@ -174,6 +174,45 @@ class WorkoutPlanViewModel : ViewModel() {
                 }
             } catch (e: IOException) {
                 Log.e("WorkoutPlanViewModel", "Exception during get workout plan by ID request: ${e.message}")
+                "Exception: ${e.message}"
+            }
+        }
+    }
+
+    // Function to delete a workout plan by ID
+    fun deleteWorkoutPlanById(
+        context: Context,
+        planId: String,
+        callback: (Boolean, String?) -> Unit
+    ) {
+        val token = TokenManager.getToken(context)
+
+        viewModelScope.launch {
+            val response = deleteWorkoutPlanRequest(planId, token)
+            val success = response != null && response.isEmpty()
+            callback(success, response)
+        }
+    }
+
+    // Sends the delete request for a workout plan by ID
+    private suspend fun deleteWorkoutPlanRequest(planId: String, token: String?): String? {
+        return withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("http://10.0.2.2:8080/api/workout-plans/$planId")
+                .delete()
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+
+            try {
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        ""  // Return an empty string on successful deletion
+                    } else {
+                        "Failed with response code ${response.code}, message: ${response.message}"
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("WorkoutPlanViewModel", "Exception during delete workout plan request: ${e.message}")
                 "Exception: ${e.message}"
             }
         }
