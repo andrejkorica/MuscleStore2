@@ -21,6 +21,7 @@ import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import hr.unipu.musclestore.R
 import hr.unipu.musclestore.composables.CustomCard
 import hr.unipu.musclestore.data.User
@@ -33,7 +34,8 @@ import hr.unipu.musclestore.viewmodels.StoreViewModel
 @Composable
 fun StoreScreen(
     storeViewModel: StoreViewModel = viewModel(),
-    profileViewModel: ProfileViewModel = viewModel()
+    profileViewModel: ProfileViewModel = viewModel(),
+    navController: NavController // Add NavController as a parameter
 ) {
     val context = LocalContext.current
     var text by remember { mutableStateOf("") }
@@ -160,11 +162,13 @@ fun StoreScreen(
                         headerText = workoutPlan.title, // Set the workout title
                         createdAt = TimestampManager.formatTimestamp(workoutPlan.timestamp), // Format and display the timestamp
                         postedBy = "${workoutPlan.user.firstName} ${workoutPlan.user.lastName}",
-                        onClick = {}
+                        onClick = {
+                            // Navigate to DetailedStoreView with the selected plan ID
+                            navController.navigate("DetailedStoreView/${workoutPlan.planId}")
+                        }
                     )
                 }
             }
         }
     }
 }
-

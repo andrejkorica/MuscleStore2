@@ -63,6 +63,7 @@ import hr.unipu.musclestore.views.AddPlanScreen
 import hr.unipu.musclestore.views.AuthScreen
 import hr.unipu.musclestore.views.CalendarView
 import hr.unipu.musclestore.views.DetailedPlansView
+import hr.unipu.musclestore.views.DetailedStoreView
 import hr.unipu.musclestore.views.HomeScreen
 import hr.unipu.musclestore.views.PlansScreen
 import hr.unipu.musclestore.views.ProfileView
@@ -231,7 +232,7 @@ class MainActivity : ComponentActivity() {
                                     AddPlanScreen(navController = navController)
                                 }
                                 composable("StoreView") {
-                                    StoreScreen()
+                                    StoreScreen(navController = navController)
                                 }
                                 composable("ProfileView") {
                                     ProfileView(navController = navController)
@@ -241,6 +242,10 @@ class MainActivity : ComponentActivity() {
                                 }
                                 composable("LoginView") {
                                     LoginScreen(navController = navController)
+                                }
+                                composable("DetailedStoreView/{planId}") { backStackEntry ->
+                                    val planId = backStackEntry.arguments?.getString("planId")
+                                    DetailedStoreView(planId, navController)
                                 }
                                 composable("DetailedPlansView/{planId}") { backStackEntry ->
                                     val planId = backStackEntry.arguments?.getString("planId")
