@@ -290,4 +290,100 @@ class WorkoutPlanViewModel : ViewModel() {
             }
         }
     }
+
+    // Function to retrieve the active workout plan
+    fun getActiveWorkoutPlan(
+        context: Context,
+        callback: (WorkoutPlan?, String?) -> Unit
+    ) {
+        val token = TokenManager.getToken(context)
+
+        viewModelScope.launch {
+            val response = getActiveWorkoutRequest(token)
+            val activeWorkoutId = parseActiveWorkoutIdFromJson(response)
+
+            if (activeWorkoutId != null) {
+                // Fetch the actual workout plan details using the active workout ID
+                getWorkoutPlanById(context, activeWorkoutId.toString()) { plan, error ->
+                    callback(plan, error)
+                }
+            } else {
+                callback(null, "Failed to parse active workout ID")
+            }
+        }
+    }
+
+    // Sends the request to retrieve the active workout plan
+    private suspend fun getActiveWorkoutRequest(token: String?): String? {
+        return withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("http://10.0.2.2:8080/api/workout-plans/active")
+                .get()
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+
+            try {
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        response.body?.string()
+                    } else {
+                        "Failed with response code ${response.code}, message: ${response.message}"
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("WorkoutPlanViewModel", "Exception during get active workout request: ${e.message}")
+                "Exception: ${e.message}"
+            }
+        }
+    }
+
+    // Parses the JSON response to extract active workout ID
+    private fun parseActiveWorkoutIdFromJson(json: String?): Int? {
+        return try {
+            val jsonObject = gson.fromJson(json, JsonObject::class.java)
+            jsonObject.get("workoutPlanId")?.asInt
+        } catch (e: Exception) {
+            Log.e("WorkoutPlanViewModel", "Exception during active workout ID parsing: ${e.message}")
+            null
+        }
+    }
+
+    // Function to set an active workout plan
+    fun setActiveWorkoutPlan(
+        context: Context,
+        workoutPlanId: Int,
+        callback: (Boolean, String?) -> Unit
+    ) {
+        val token = TokenManager.getToken(context)
+
+        viewModelScope.launch {
+            val response = setActiveWorkoutRequest(workoutPlanId, token)
+            val success = response != null && response.isEmpty()
+            callback(success, response)
+        }
+    }
+
+    // Sends the request to set an active workout plan
+    private suspend fun setActiveWorkoutRequest(workoutPlanId: Int, token: String?): String? {
+        return withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("http://10.0.2.2:8080/api/workout-plans/$workoutPlanId/set-active")
+                .post(RequestBody.create("application/json; charset=utf-8".toMediaTypeOrNull(), "{}"))
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+
+            try {
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        ""  // Return an empty string on successful request
+                    } else {
+                        "Failed with response code ${response.code}, message: ${response.message}"
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("WorkoutPlanViewModel", "Exception during set active workout request: ${e.message}")
+                "Exception: ${e.message}"
+            }
+        }
+    }
 }

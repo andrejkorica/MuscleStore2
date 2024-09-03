@@ -20,6 +20,7 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
     var workoutPlan by remember { mutableStateOf<WorkoutPlan?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var showDeleteConfirmation by remember { mutableStateOf(false) } // For delete confirmation dialog
+    var showSetActiveConfirmation by remember { mutableStateOf(false) } // For set active confirmation dialog
 
     LaunchedEffect(planId) {
         planId?.let {
@@ -85,7 +86,7 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
                             Spacer(modifier = Modifier.width(8.dp)) // Space between buttons
 
                             Button(
-                                onClick = { /* Handle set as active action */ },
+                                onClick = { showSetActiveConfirmation = true }, // Show set active confirmation dialog
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text("Set as Active")
@@ -134,6 +135,41 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
             dismissButton = {
                 Button(
                     onClick = { showDeleteConfirmation = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Set Active confirmation dialog
+    if (showSetActiveConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showSetActiveConfirmation = false },
+            title = { Text("Set Active Workout Plan") },
+            text = { Text("Are you sure you want to set this workout plan as active?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        workoutPlan?.let { plan ->
+                            workoutPlanViewModel.setActiveWorkoutPlan(context, plan.planId) { success, message ->
+                                if (success) {
+                                    // Handle success (e.g., show a Toast or Snackbar)
+                                    navController.popBackStack() // Optionally navigate back
+                                } else {
+                                    // Handle error (e.g., show a Toast or Snackbar)
+                                }
+                            }
+                        }
+                        showSetActiveConfirmation = false
+                    }
+                ) {
+                    Text("Set as Active")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showSetActiveConfirmation = false }
                 ) {
                     Text("Cancel")
                 }
