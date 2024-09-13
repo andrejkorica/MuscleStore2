@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonArray
 import com.google.gson.JsonNull
 import com.google.gson.JsonObject
+import hr.unipu.musclestore.data.AddFromStoreResponse
 import hr.unipu.musclestore.data.Exercise
 import hr.unipu.musclestore.data.Section
 import hr.unipu.musclestore.data.User
@@ -386,4 +387,112 @@ class WorkoutPlanViewModel : ViewModel() {
             }
         }
     }
+
+    // Function to add a workout from the store
+    fun addWorkoutFromStore(
+        context: Context,
+        workoutPlanId: Int,
+        callback: (Boolean, String?, Int?) -> Unit
+    ) {
+        val token = TokenManager.getToken(context)
+
+        viewModelScope.launch {
+            val response = addWorkoutFromStoreRequest(workoutPlanId, token)
+            val success = response?.first ?: false
+            val errorMessage = response?.second
+            val addedFromStoreId = response?.third
+            callback(success, errorMessage, addedFromStoreId)
+        }
+    }
+
+    // Sends the request to add a workout from the store
+    private suspend fun addWorkoutFromStoreRequest(workoutPlanId: Int, token: String?): Triple<Boolean, String?, Int?>? {
+        return withContext(Dispatchers.IO) {
+            val jsonObject = JsonObject().apply {
+                addProperty("workoutPlanId", workoutPlanId)
+            }
+
+            val body: RequestBody = jsonObject.toString()
+                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+
+            val request = Request.Builder()
+                .url("http://10.0.2.2:8080/api/workout-plans/add-from-store")
+                .post(body)
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+
+            try {
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string()
+                        val jsonResponse = gson.fromJson(responseBody, JsonObject::class.java)
+                        val addedFromStoreId = jsonResponse.get("addedFromStoreId").asInt
+                        Triple(true, null, addedFromStoreId)
+                    } else {
+                        Triple(false, "Failed with response code ${response.code}, message: ${response.message}", null)
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("WorkoutPlanViewModel", "Exception during add workout from store request: ${e.message}")
+                Triple(false, "Exception: ${e.message}", null)
+            }
+        }
+    }
+
+    // Function to retrieve all records from the add-from-store endpoint
+    fun getAllAddedFromStore(
+        context: Context,
+        callback: (List<AddFromStoreResponse>?, String?) -> Unit
+    ) {
+        val token = TokenManager.getToken(context)
+
+        viewModelScope.launch {
+            val response = getAllAddedFromStoreRequest(token)
+            val addedFromStoreRecords = parseAddFromStoreResponse(response)
+            val success = addedFromStoreRecords.isNotEmpty()
+            callback(addedFromStoreRecords.takeIf { success }, response)
+        }
+    }
+
+    // Sends the GET request to retrieve all records from add-from-store
+    private suspend fun getAllAddedFromStoreRequest(token: String?): String? {
+        return withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("http://10.0.2.2:8080/api/workout-plans/add-from-store")
+                .get()
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+
+            try {
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        response.body?.string()
+                    } else {
+                        "Failed with response code ${response.code}, message: ${response.message}"
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("WorkoutPlanViewModel", "Exception during get all added from store request: ${e.message}")
+                "Exception: ${e.message}"
+            }
+        }
+    }
+
+    // Parses the JSON response to create a list of AddFromStoreResponse objects
+    private fun parseAddFromStoreResponse(json: String?): List<AddFromStoreResponse> {
+        return if (json.isNullOrEmpty()) {
+            emptyList()
+        } else {
+            try {
+                val jsonArray = gson.fromJson(json, JsonArray::class.java)
+                jsonArray.map { jsonElement ->
+                    gson.fromJson(jsonElement, AddFromStoreResponse::class.java)
+                }
+            } catch (e: Exception) {
+                Log.e("WorkoutPlanViewModel", "Exception during JSON parsing: ${e.message}")
+                emptyList()
+            }
+        }
+    }
+
 }

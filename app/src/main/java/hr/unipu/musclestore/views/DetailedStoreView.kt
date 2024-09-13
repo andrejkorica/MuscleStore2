@@ -13,7 +13,6 @@ import androidx.navigation.NavController
 import hr.unipu.musclestore.data.WorkoutPlan
 import hr.unipu.musclestore.viewmodel.WorkoutPlanViewModel
 import androidx.compose.ui.platform.LocalContext
-
 @Composable
 fun DetailedStoreView(
     planId: String?,
@@ -110,14 +109,14 @@ fun DetailedStoreView(
             confirmButton = {
                 Button(
                     onClick = {
-//                        workoutPlan?.let { plan ->
-//                            workoutPlanViewModel.addToWorkoutPlans(context, plan.planId) { success, _ ->
-//                                if (success) {
-//                                    navController.popBackStack() // Navigate back after successful addition
-//                                }
-//                            }
-//                        }
-//                        showAddToWorkoutPlansConfirmation = false
+                        workoutPlan?.let { plan ->
+                            workoutPlanViewModel.addWorkoutFromStore(context, plan.planId) { success, _, _ ->
+                                if (success) {
+                                    navController.popBackStack() // Navigate back after successful addition
+                                }
+                            }
+                        }
+                        showAddToWorkoutPlansConfirmation = false
                     }
                 ) {
                     Text("Add")

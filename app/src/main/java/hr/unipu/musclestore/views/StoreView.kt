@@ -25,28 +25,37 @@ import androidx.navigation.NavController
 import hr.unipu.musclestore.R
 import hr.unipu.musclestore.composables.CustomCard
 import hr.unipu.musclestore.data.User
+import hr.unipu.musclestore.data.WorkoutPlan
 import hr.unipu.musclestore.utils.Base64Manager.decodeBase64ToBitmap
 import hr.unipu.musclestore.utils.Base64Manager.drawableToBitmap
 import hr.unipu.musclestore.utils.TimestampManager
 import hr.unipu.musclestore.viewmodel.ProfileViewModel
+import hr.unipu.musclestore.viewmodel.WorkoutPlanViewModel
 import hr.unipu.musclestore.viewmodels.StoreViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StoreScreen(
     storeViewModel: StoreViewModel = viewModel(),
+    workoutPlanViewModel: WorkoutPlanViewModel= viewModel(),
     profileViewModel: ProfileViewModel = viewModel(),
-    navController: NavController // Add NavController as a parameter
+    navController: NavController
 ) {
     val context = LocalContext.current
     var text by remember { mutableStateOf("") }
     var showFilterDialog by remember { mutableStateOf(false) }
     var currentUser by remember { mutableStateOf<User?>(null) }
+    var addedWorkoutPlans by remember { mutableStateOf<List<WorkoutPlan>>(emptyList()) }
 
-    // Fetch the current user data
+    // Fetch the current user data and added workout plans
     LaunchedEffect(Unit) {
         profileViewModel.fetchUserData(context) { user, error ->
             if (user != null) {
                 currentUser = user
+                workoutPlanViewModel.getAllAddedFromStore(context) { addedPlans, _ ->
+                    if (addedPlans != null) {
+                        addedWorkoutPlans = addedPlans.mapNotNull { it.workoutPlan }
+                    } // Filter out nulls
+                }
             }
         }
         storeViewModel.fetchAllWorkoutPlans(context)
@@ -142,9 +151,10 @@ fun StoreScreen(
         ) {
             // Use LazyColumn to display workout plans
             LazyColumn {
-                // Ensure currentUser is not null before filtering
+                // Ensure currentUser and addedWorkoutPlans are not null before filtering
                 val filteredPlans = storeViewModel.workoutPlans.filter { workoutPlan ->
-                    workoutPlan.user.email != currentUser?.email
+                    workoutPlan.planId !in addedWorkoutPlans.map { it.planId } &&
+                            workoutPlan.user.email != currentUser?.email
                 }
 
                 // Display workout plans
