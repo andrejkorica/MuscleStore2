@@ -29,23 +29,33 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import hr.unipu.musclestore.R
 import hr.unipu.musclestore.data.User
+import hr.unipu.musclestore.utils.StreakManager
 import hr.unipu.musclestore.viewmodel.ProfileViewModel
+import hr.unipu.musclestore.viewmodel.WorkoutPlanViewModel
 import kotlinx.coroutines.launch
 import java.io.IOException
+
 @Composable
 fun ProfileView(navController: NavController) {
     val context = LocalContext.current
     val profileViewModel: ProfileViewModel = viewModel()
+    val workoutPlanViewModel: WorkoutPlanViewModel = viewModel()
+
     var userData by remember { mutableStateOf<User?>(null) }
     var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var currentPlanTitle by remember { mutableStateOf<String?>(null) }
+    var streak by remember { mutableStateOf(0) }
+    var weeklyAverage by remember { mutableStateOf(0.0) }
+    var monthlyAverage by remember { mutableStateOf(0.0) }
+
     val coroutineScope = rememberCoroutineScope()
 
-    // Fetch user data
+    // Fetch user data and workout plan details
     LaunchedEffect(Unit) {
+        // Fetch user data
         profileViewModel.fetchUserData(context) { user, error ->
             if (user != null) {
                 userData = user
-                // Decode base64 to Bitmap
                 if (user.profilePicture != null) {
                     user.profilePicture.let { base64 ->
                         profileBitmap = profileViewModel.decodeBase64Image(base64)
@@ -54,6 +64,30 @@ fun ProfileView(navController: NavController) {
             } else {
                 Log.e("ProfileView", "Failed to fetch user data: $error")
                 Toast.makeText(context, "Failed to fetch user data.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Fetch active workout plan ID and title
+        workoutPlanViewModel.getActiveWorkoutPlan(context) { workoutPlan, _ ->
+            val activeWorkoutPlanId = workoutPlan?.planId
+            Log.d("ProfileView", "Active Workout Plan ID: $activeWorkoutPlanId")
+            activeWorkoutPlanId?.let { planId ->
+                workoutPlanViewModel.getWorkoutPlanById(context, planId.toString()) { workoutPlanDetails, _ ->
+                    val title = workoutPlanDetails?.title
+                    Log.d("ProfileView", "Fetched Plan Title: $title")
+                    currentPlanTitle = title
+                }
+            } ?: run {
+                Log.d("ProfileView", "No active workout plan found")
+            }
+        }
+
+        // Fetch workout notations to calculate statistics
+        workoutPlanViewModel.getAllWorkoutNotations(context) { notations, _ ->
+            if (notations != null) {
+                streak = StreakManager.calculateStreak(notations)
+                weeklyAverage = StreakManager.calculateWeeklyAverage(notations)
+                monthlyAverage = StreakManager.calculateMonthlyAverage(notations)
             }
         }
     }
@@ -72,7 +106,6 @@ fun ProfileView(navController: NavController) {
                             profileViewModel.fetchUserData(context) { user, error ->
                                 if (user != null) {
                                     userData = user
-                                    // Decode base64 to Bitmap
                                     user.profilePicture?.let { base64 ->
                                         profileBitmap = profileViewModel.decodeBase64Image(base64)
                                     }
@@ -195,18 +228,17 @@ fun ProfileView(navController: NavController) {
                                 textAlign = TextAlign.Center
                             )
                             // Stats
-                            Text(text = "Streak: 57 days", fontSize = 16.sp)
-                            Text(text = "Median per week: 3 days", fontSize = 16.sp)
+                            Text(text = "Streak: $streak days", fontSize = 16.sp)
+                            Text(text = "Median per week: ${weeklyAverage.toInt()} days", fontSize = 16.sp)
                             Spacer(modifier = Modifier.height(8.dp))
                             // Separator Line
                             Divider(color = Color.Gray, thickness = 1.dp)
                             Spacer(modifier = Modifier.height(16.dp))
                             // More Stats
-                            Text(text = "Current Plan: Ulul v3", fontSize = 16.sp)
+                            Text(text = "Current Plan: ${currentPlanTitle ?: "Loading..."}", fontSize = 16.sp)
                         }
                     }
                 }
-
             }
         }
     }
