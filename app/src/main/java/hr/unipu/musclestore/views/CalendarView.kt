@@ -1,229 +1,134 @@
 package hr.unipu.musclestore.views
 
-import android.graphics.Paint
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.ui.Alignment
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import hr.unipu.musclestore.data.CalendarInput
-import kotlinx.coroutines.launch
+import hr.unipu.musclestore.data.WorkoutNotation
+import hr.unipu.musclestore.viewmodel.WorkoutPlanViewModel
+import java.time.LocalDate
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
+private const val CALENDAR_COLUMNS = 5
+@Composable
+fun CalendarScreen(
+    workoutPlanViewModel: WorkoutPlanViewModel = viewModel(),
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var month by remember { mutableStateOf(LocalDate.now().monthValue) }
+    var year by remember { mutableStateOf(LocalDate.now().year) }
+    var clickedDay by remember { mutableStateOf<CalendarInput?>(null) }
+    var workoutNotations by remember { mutableStateOf<List<WorkoutNotation>>(emptyList()) }
 
-private const val CALENDAR_ROWS = 5
-private const val CALENDAR_COLUMNS = 7
-class CalendarView {
-
-
-
-    fun createCalendarList(year: Int, month: Int): List<CalendarInput> {
-        val daysInMonth = YearMonth.of(year, month).lengthOfMonth()
-        val calendarInputs = mutableListOf<CalendarInput>()
-        for (i in 1..daysInMonth) {
-            calendarInputs.add(
-                CalendarInput(
-                    i,
-                    notes = listOf(
-                        "gass",
-                        "hoe",
-                        "aaaaaa"
-                    )
-                )
-            )
+    // Fetch workout notations and update calendar input list
+    LaunchedEffect(Unit) {
+        workoutPlanViewModel.getAllWorkoutNotations(context) { notations, _ ->
+            workoutNotations = notations ?: emptyList()
         }
-        return calendarInputs
     }
 
+    val calendarInputList = remember(month) {
+        createCalendarList(year, month)
+    }
+    val daysInMonth = calendarInputList.size
+    val currentMonthString = remember(month) {
+        LocalDate.now().withMonth(month).month.toString()
+            .lowercase(Locale.getDefault())
+            .replaceFirstChar { it.titlecase(Locale.getDefault()) }
+    }
 
-    @Composable
-    fun CalendarScreen(
-        modifier: Modifier = Modifier,
-        calendarInput: List<CalendarInput>,
-        onDayClick: (Int) -> Unit,
-        onPreviousMonthClick: () -> Unit,
-        onNextMonthClick: () -> Unit,
-        strokeWidth: Float = 5f,
-        month: String
-    ) {
-
-
-        var canvasSize by remember {
-            mutableStateOf(Size.Zero)
-        }
-        var clickedAnimationOffset by remember {
-            mutableStateOf(Offset.Zero)
-        }
-
-        var animationRadius by remember {
-            mutableStateOf(0f)
-        }
-
-        val scope = rememberCoroutineScope()
-
-        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(modifier = modifier) {
+        Spacer(modifier = Modifier.padding(8.dp))
+        // Month Navigation
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            IconButton(onClick = {
+                month = if (month == 1) 12 else month - 1
+                if (month == 12) year-- // Adjust year when going from January to December
+            }) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Previous Month")
+            }
             Text(
-                text = month,
+                text = currentMonthString,
                 fontWeight = FontWeight.Medium,
                 color = Color.Black,
                 fontSize = 40.sp,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterVertically)
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(
-                    onClick = onPreviousMonthClick
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Previous Month"
-                    )
-                }
-
-                IconButton(
-                    onClick = onNextMonthClick
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowForward,
-                        contentDescription = "Next Month"
-                    )
-                }
-            }
-
-
-            Canvas(modifier = Modifier.
-                        fillMaxSize().
-            pointerInput(true) {
-                detectTapGestures { offset ->
-                    val column = (offset.x / canvasSize.width * CALENDAR_COLUMNS).toInt()
-                    val row = (offset.y / canvasSize.height * CALENDAR_ROWS).toInt()
-                    val day = column + row * CALENDAR_COLUMNS + 1 // Calculate the day within the grid
-                    if (day <= calendarInput.size) {
-                        onDayClick(day)
-                        val clickedOffset = Offset(
-                            (column.toFloat() / CALENDAR_COLUMNS) * canvasSize.width,
-                            (row.toFloat() / CALENDAR_ROWS) * canvasSize.height
-                        )
-                        clickedAnimationOffset = clickedOffset
-                        scope.launch {
-                            animate(0f, 225f, animationSpec = tween(300)) { value, _ ->
-                                animationRadius = value
-                            }
-                        }
-                    }
-                }
-            }
-            ) {
-                val canvasHeight = size.height
-                val canvasWidth = size.width
-                canvasSize = Size(canvasWidth, canvasHeight)
-                val ySteps = canvasHeight / CALENDAR_ROWS
-                val xSteps = canvasWidth / CALENDAR_COLUMNS
-
-                val column = (clickedAnimationOffset.x / canvasSize.width * CALENDAR_COLUMNS + 1)
-                val row = (clickedAnimationOffset.y / canvasSize.height * CALENDAR_ROWS + 1)
-
-                val path = Path().apply {
-                    moveTo((column-1)*xSteps, (row-1) * ySteps)
-                    lineTo(column*xSteps, (row-1)*ySteps)
-                    lineTo(column*xSteps, row*ySteps)
-                    lineTo((column-1) * xSteps, row*ySteps)
-                    close()
-                }
-
-                 clipPath(path){
-                     drawCircle(
-                         brush = Brush.radialGradient(
-                             listOf(Color.Green.copy(0.8f), Color.Green.copy(0.2f)),
-                             center = clickedAnimationOffset,
-                             radius = animationRadius + 0.1f
-                         ),
-                         radius = animationRadius + 0.1f,
-                         center = clickedAnimationOffset
-                     )
-                 }
-
-                drawRoundRect(
-                    color = Color.White,
-                    cornerRadius = CornerRadius(15f, 15f),
-                    style = Stroke(
-                        width = strokeWidth
-                    )
-                )
-
-                for (i in 1 until CALENDAR_ROWS) {
-                    drawLine(
-                        color = Color.Gray,
-                        start = Offset(0f, ySteps * i),
-                        end = Offset(canvasWidth, ySteps * i),
-                        strokeWidth = strokeWidth
-                    )
-                }
-
-                for (i in 1 until CALENDAR_COLUMNS) {
-                    drawLine(
-                        color = Color.Gray,
-                        start = Offset(xSteps * i, 0f),
-                        end = Offset(xSteps * i, canvasHeight),
-                        strokeWidth = strokeWidth
-                    )
-                }
-                val textHeight =  17.dp.toPx()
-                for (i in calendarInput.indices) {
-                    val textPositionx = xSteps * (i% CALENDAR_COLUMNS) + strokeWidth
-                    val textPositionY = (i / CALENDAR_COLUMNS) * ySteps + textHeight + strokeWidth/2
-                    drawContext.canvas.nativeCanvas.apply {
-                        drawText(
-                            "${i + 1}",
-                            textPositionx,
-                            textPositionY,
-                            Paint().apply {
-                                textSize = textHeight
-                                color = Color.Black.toArgb()
-                                isFakeBoldText = true
-                            }
-
-                        )
-                    }
-                }
-
-
+            IconButton(onClick = {
+                month = if (month == 12) 1 else month + 1
+                if (month == 1) year++ // Adjust year when going from December to January
+            }) {
+                Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Next Month")
             }
         }
 
+        // Calendar Grid
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(CALENDAR_COLUMNS),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp), // Add padding around the whole calendar
+            contentPadding = PaddingValues(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(daysInMonth) { day ->
+                val hasWorkout = workoutNotations.any {
+                    val notationDate = LocalDate.parse(it.timestamp, DateTimeFormatter.ISO_DATE_TIME)
+                    notationDate.monthValue == month && notationDate.year == year && notationDate.dayOfMonth == day
+                }
+                CalendarCell(
+                    day = day,
+                    isSelected = clickedDay?.day == day,
+                    hasWorkout = hasWorkout, // Pass hasWorkout parameter
+                    onClick = {
+                        clickedDay = calendarInputList.firstOrNull { it.day == day }
+                    }
+                )
+            }
+        }
     }
+}
+
+
+
+fun createCalendarList(year: Int, month: Int): List<CalendarInput> {
+    val daysInMonth = YearMonth.of(year, month).lengthOfMonth()
+    val firstDayOfMonth = LocalDate.of(year, month, 1).dayOfWeek.value
+    val daysBeforeMonthStart = (firstDayOfMonth % 7) // Compute zero-based index for the first day of the month
+
+    val calendarInputList = mutableListOf<CalendarInput>()
+
+    // Add placeholder days for alignment
+    for (i in 1 until daysBeforeMonthStart) {
+        calendarInputList.add(CalendarInput(day = 0)) // Placeholder day
+    }
+
+    // Add actual days of the month
+    for (day in 1..daysInMonth) {
+        calendarInputList.add(CalendarInput(day = day))
+    }
+
+    return calendarInputList
 }

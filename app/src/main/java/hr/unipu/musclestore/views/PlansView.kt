@@ -1,14 +1,7 @@
 package hr.unipu.musclestore.views
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,12 +19,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -64,22 +52,35 @@ fun PlansScreen(navController: NavController) {
     var activeWorkoutPlan by remember { mutableStateOf<WorkoutPlan?>(null) }
     var user by remember { mutableStateOf<User?>(null) }
 
+    // Fetch data
     LaunchedEffect(Unit) {
-        // Fetch all workout plans for the user
         workoutPlanViewModel.getWorkoutPlansForUser(context) { plans, fetchedUser, _ ->
             workoutPlans = plans ?: emptyList()
             user = fetchedUser
         }
 
-        // Fetch the active workout plan separately
         workoutPlanViewModel.getActiveWorkoutPlan(context) { activePlan, _ ->
             activeWorkoutPlan = activePlan
         }
 
-        // Fetch all added-from-store records
         workoutPlanViewModel.getAllAddedFromStore(context) { records, _ ->
             addedFromStoreRecords = records ?: emptyList()
         }
+    }
+
+    // Filter workout plans based on search query
+    val filteredPlans = workoutPlans.filter {
+        val exerciseTitle = it.sections.firstOrNull()?.exercises?.firstOrNull()?.title ?: ""
+        exerciseTitle.contains(text, ignoreCase = true) && it.planId != activeWorkoutPlan?.planId
+    } + addedFromStoreRecords.mapNotNull { it.workoutPlan }.filter {
+        val exerciseTitle = it.sections.firstOrNull()?.exercises?.firstOrNull()?.title ?: ""
+        exerciseTitle.contains(text, ignoreCase = true) && it.planId != activeWorkoutPlan?.planId
+    }
+
+    // Debug logs
+    LaunchedEffect(text) {
+        println("Search Query: $text")
+        println("Filtered Plans Count: ${filteredPlans.size}")
     }
 
     Column(
@@ -87,7 +88,6 @@ fun PlansScreen(navController: NavController) {
             .fillMaxSize()
             .padding(bottom = 80.dp)
     ) {
-        // Active Workout Plan Card
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -101,8 +101,8 @@ fun PlansScreen(navController: NavController) {
                 ) {
                     SearchBar(
                         query = text,
-                        onQueryChange = { text = it },
-                        onSearch = { /* Handle search action */ },
+                        onQueryChange = { newText -> text = newText },
+                        onSearch = { /* Handle search action if needed */ },
                         active = false,
                         onActiveChange = { /* Handle active state change */ },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search icon") },
@@ -111,10 +111,6 @@ fun PlansScreen(navController: NavController) {
                             // Define the content to be displayed when the search bar is active
                         }
                     )
-
-                    IconButton(onClick = { showFilterDialog = true }) {
-                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Filter")
-                    }
                 }
 
                 Text(
@@ -123,30 +119,27 @@ fun PlansScreen(navController: NavController) {
                     style = MaterialTheme.typography.headlineMedium
                 )
 
-                // Display the active workout plan if it exists, otherwise show a placeholder
                 if (activeWorkoutPlan != null) {
                     val imageBitmap = user?.profilePicture?.let { profilePictureBase64 ->
                         decodeBase64ToBitmap(profilePictureBase64)?.asImageBitmap()
-                    } ?: ImageBitmap.imageResource(id = R.drawable.lifter) // Fallback image if null
+                    } ?: ImageBitmap.imageResource(id = R.drawable.lifter)
 
                     val section = activeWorkoutPlan?.sections?.firstOrNull()
                     val exercise = section?.exercises?.firstOrNull()
                     val formattedTimestamp = TimestampManager.formatTimestamp(activeWorkoutPlan!!.timestamp)
 
                     CustomCard(
-                        imageBitmap = imageBitmap, // Use the decoded user profile image or fallback
-                        headerText = exercise?.title ?: "No Exercise", // Use exercise title or default
-                        createdAt = formattedTimestamp, // Display the formatted timestamp
-                        postedBy = "${user?.firstName} ${user?.lastName}", // User's name
+                        imageBitmap = imageBitmap,
+                        headerText = exercise?.title ?: "No Exercise",
+                        createdAt = formattedTimestamp,
+                        postedBy = "${user?.firstName} ${user?.lastName}",
                         onClick = {
-                            // Navigate to DetailedPlansView with the active plan
                             navController.navigate("DetailedPlansView/${activeWorkoutPlan!!.planId}")
                         }
                     )
                 } else {
-                    // Show a placeholder if there's no active workout plan
                     CustomCard(
-                        imageBitmap = ImageBitmap.imageResource(id = R.drawable.lifter), // Placeholder image
+                        imageBitmap = ImageBitmap.imageResource(id = R.drawable.lifter),
                         headerText = "No Active Workout Plan",
                         createdAt = "",
                         postedBy = "",
@@ -203,58 +196,24 @@ fun PlansScreen(navController: NavController) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // Combine workout plans and added-from-store records
-                val combinedPlans = workoutPlans.filter { it.planId != activeWorkoutPlan?.planId } + addedFromStoreRecords
+                items(filteredPlans) { item ->
+                    val imageBitmap = item.user.profilePicture?.let { profilePictureBase64 ->
+                        decodeBase64ToBitmap(profilePictureBase64)?.asImageBitmap()
+                    } ?: ImageBitmap.imageResource(id = R.drawable.lifter)
 
-                items(combinedPlans) { item ->
-                    when (item) {
-                        is WorkoutPlan -> {
-                            // Decode the user's profile picture from Base64 to Bitmap or use fallback
-                            val imageBitmap = user?.profilePicture?.let { profilePictureBase64 ->
-                                decodeBase64ToBitmap(profilePictureBase64)?.asImageBitmap()
-                            } ?: ImageBitmap.imageResource(id = R.drawable.lifter) // Fallback image if null
+                    val section = item.sections.firstOrNull()
+                    val exercise = section?.exercises?.firstOrNull()
+                    val formattedTimestamp = TimestampManager.formatTimestamp(item.timestamp)
 
-                            // Get the first exercise and its title
-                            val section = item.sections.firstOrNull()
-                            val exercise = section?.exercises?.firstOrNull()
-
-                            // Use formatted timestamp
-                            val formattedTimestamp = TimestampManager.formatTimestamp(item.timestamp)
-
-                            CustomCard(
-                                imageBitmap = imageBitmap, // Use the decoded user profile image or fallback
-                                headerText = exercise?.title ?: "No Exercise", // Use exercise title or default
-                                createdAt = formattedTimestamp, // Display the formatted timestamp
-                                postedBy = "${user?.firstName} ${user?.lastName}", // User's name
-                                onClick = {
-                                    // Navigate to DetailedPlansView with the selected plan
-                                    navController.navigate("DetailedPlansView/${item.planId}")
-                                }
-                            )
+                    CustomCard(
+                        imageBitmap = imageBitmap,
+                        headerText = exercise?.title ?: "No Exercise",
+                        createdAt = formattedTimestamp,
+                        postedBy = "${item.user?.firstName} ${item.user?.lastName}",
+                        onClick = {
+                            navController.navigate("DetailedPlansView/${item.planId}")
                         }
-                        is AddFromStoreResponse -> {
-                            // Display the added-from-store record
-                            val imageBitmap = item.workoutPlan?.user?.profilePicture?.let { profilePictureBase64 ->
-                                decodeBase64ToBitmap(profilePictureBase64)?.asImageBitmap()
-                            } ?: ImageBitmap.imageResource(id = R.drawable.lifter) // Fallback image if null
-
-                            // Use the workout plan details
-                            val section = item.workoutPlan?.sections?.firstOrNull()
-                            val exercise = section?.exercises?.firstOrNull()
-                            val formattedTimestamp = TimestampManager.formatTimestamp(item.workoutPlan?.timestamp)
-
-                            CustomCard(
-                                imageBitmap = imageBitmap,
-                                headerText = exercise?.title ?: "No Exercise",
-                                createdAt = formattedTimestamp,
-                                postedBy = "${item.workoutPlan?.user?.firstName} ${item.workoutPlan?.user?.lastName}",
-                                onClick = {
-                                    // Navigate to DetailedPlansView with the workout plan from the store
-                                    navController.navigate("DetailedPlansView/${item.workoutPlanId}")
-                                }
-                            )
-                        }
-                    }
+                    )
                 }
             }
 

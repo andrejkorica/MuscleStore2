@@ -6,12 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.google.gson.JsonArray
+import com.google.gson.JsonElement
 import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import hr.unipu.musclestore.data.AddFromStoreResponse
 import hr.unipu.musclestore.data.Exercise
 import hr.unipu.musclestore.data.Section
 import hr.unipu.musclestore.data.User
+import hr.unipu.musclestore.data.WorkoutNotation
 import hr.unipu.musclestore.data.WorkoutPlan
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -494,5 +496,124 @@ class WorkoutPlanViewModel : ViewModel() {
             }
         }
     }
+
+    // Function to create a workout notation
+    fun createWorkoutNotation(
+        context: Context,
+        timestamp: String?,
+        callback: (Boolean, String?) -> Unit
+    ) {
+        val token = TokenManager.getToken(context)
+
+        viewModelScope.launch {
+            val response = createWorkoutNotationRequest(timestamp, token)
+            val success = !response.isNullOrEmpty()
+            callback(success, response)
+        }
+    }
+
+    // Sends the request to create a workout notation
+    private suspend fun createWorkoutNotationRequest(
+        timestamp: String?,
+        token: String?
+    ): String? {
+        return withContext(Dispatchers.IO) {
+            val jsonObject = JsonObject().apply {
+                addProperty("timestamp", timestamp)
+            }
+
+            val body: RequestBody = jsonObject.toString()
+                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+
+            val request = Request.Builder()
+                .url("http://10.0.2.2:8080/api/workout-plans/workout-notations")
+                .post(body)
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+
+            try {
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        response.body?.string()
+                    } else {
+                        "Failed with response code ${response.code}, message: ${response.message}"
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("WorkoutPlanViewModel", "Exception during create workout notation request: ${e.message}")
+                "Exception: ${e.message}"
+            }
+        }
+    }
+
+
+    // Function to retrieve all workout notations
+    fun getAllWorkoutNotations(
+        context: Context,
+        callback: (List<WorkoutNotation>?, String?) -> Unit
+    ) {
+        val token = TokenManager.getToken(context)
+
+        viewModelScope.launch {
+            val response = getAllWorkoutNotationsRequest(token)
+            val workoutNotations = parseWorkoutNotationsFromJson(response)
+            val success = workoutNotations.isNotEmpty()
+            callback(workoutNotations.takeIf { success }, response)
+        }
+    }
+
+    // Sends the GET request to retrieve all workout notations
+    private suspend fun getAllWorkoutNotationsRequest(token: String?): String? {
+        return withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("http://10.0.2.2:8080/api/workout-plans/workout-notations")
+                .get()
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+
+            try {
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        response.body?.string()
+                    } else {
+                        "Failed with response code ${response.code}, message: ${response.message}"
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("WorkoutPlanViewModel", "Exception during get all workout notations request: ${e.message}")
+                "Exception: ${e.message}"
+            }
+        }
+    }
+
+// Parses the JSON response to create a list of WorkoutNotation objects
+    private fun parseWorkoutNotationsFromJson(json: String?): List<WorkoutNotation> {
+        if (json.isNullOrEmpty()) {
+            Log.e("WorkoutPlanViewModel", "Empty or null JSON response")
+            return emptyList()
+        }
+
+        return try {
+            val jsonElement = gson.fromJson(json, JsonElement::class.java)
+
+            // Check if the root element is an array
+            if (jsonElement.isJsonArray) {
+                val jsonArray = jsonElement.asJsonArray
+                jsonArray.map { element ->
+                    gson.fromJson(element, WorkoutNotation::class.java)
+                }
+            } else {
+                // Log if it's not an array
+                Log.e("WorkoutPlanViewModel", "Expected JSON array but received: $jsonElement")
+                emptyList()
+            }
+        } catch (e: Exception) {
+            Log.e("WorkoutPlanViewModel", "Exception during JSON parsing: ${e.message}")
+            emptyList()
+        }
+    }
+
+
+
 
 }

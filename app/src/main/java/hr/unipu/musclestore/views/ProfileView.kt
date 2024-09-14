@@ -203,42 +203,10 @@ fun ProfileView(navController: NavController) {
                             Spacer(modifier = Modifier.height(16.dp))
                             // More Stats
                             Text(text = "Current Plan: Ulul v3", fontSize = 16.sp)
-                            Text(text = "Used plan for: 10 days", fontSize = 16.sp)
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Card(
-                    Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(24.dp)
-                    ) {
-                        Button(
-                            onClick = { /* Do nothing for now */ },
-                            shape = RoundedCornerShape(8.dp) // Less rounded corners
-                        ) {
-                            Text(text = "Change credentials", fontSize = 16.sp, color = Color.White)
-                        }
-                        Button(
-                            onClick = { /* Do nothing for now */ },
-                            colors = ButtonDefaults.buttonColors(Color.Red.copy(alpha = 0.7f)),
-                            shape = RoundedCornerShape(8.dp) // Less rounded corners
-                        ) {
-                            Text(text = "Delete data", fontSize = 16.sp)
-                        }
-                        Button(
-                            onClick = { /* Do nothing for now */ },
-                            colors = ButtonDefaults.buttonColors(Color.Red.copy(alpha = 0.7f)),
-                            shape = RoundedCornerShape(8.dp) // Less rounded corners
-                        ) {
-                            Text(text = "Delete account", fontSize = 16.sp)
-                        }
-                    }
-                }
             }
         }
     }

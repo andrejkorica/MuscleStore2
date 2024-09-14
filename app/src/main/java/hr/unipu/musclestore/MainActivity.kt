@@ -57,11 +57,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import hr.unipu.musclestore.data.BottomNavigationItem
-import hr.unipu.musclestore.data.CalendarInput
 import hr.unipu.musclestore.ui.theme.MuscleStoreTheme
 import hr.unipu.musclestore.views.AddPlanScreen
 import hr.unipu.musclestore.views.AuthScreen
-import hr.unipu.musclestore.views.CalendarView
+import hr.unipu.musclestore.views.CalendarScreen
 import hr.unipu.musclestore.views.DetailedPlansView
 import hr.unipu.musclestore.views.DetailedStoreView
 import hr.unipu.musclestore.views.HomeScreen
@@ -69,8 +68,7 @@ import hr.unipu.musclestore.views.PlansScreen
 import hr.unipu.musclestore.views.ProfileView
 import hr.unipu.musclestore.views.SignUpScreen
 import hr.unipu.musclestore.views.StoreScreen
-import java.time.LocalDate
-import java.util.Locale
+
 
 
 
@@ -172,58 +170,7 @@ class MainActivity : ComponentActivity() {
                                     HomeScreen()
                                 }
                                 composable("CalendarView") {
-                                    val calendarView = CalendarView()
-                                    val currentYear = LocalDate.now().year
-                                    var month by remember { mutableIntStateOf(LocalDate.now().monthValue) }
-                                    val currentMonthString = remember(month) {
-                                        LocalDate.now().withMonth(month).month.toString()
-                                            .lowercase(Locale.getDefault())
-                                            .replaceFirstChar { it.titlecase(Locale.getDefault()) }
-                                    }
-                                    var calendarInputList by remember(month) {
-                                        mutableStateOf(calendarView.createCalendarList(currentYear, month))
-                                    }
-                                    var clickedCalendarElem by remember {
-                                        mutableStateOf<CalendarInput?>(null)
-                                    }
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.TopCenter
-                                    ) {
-                                        calendarView.CalendarScreen(
-                                            month = currentMonthString,
-                                            calendarInput = calendarInputList,
-                                            onDayClick = { day -> clickedCalendarElem = calendarInputList.first { it.day == day } },
-                                            modifier = Modifier
-                                                .padding(10.dp)
-                                                .fillMaxWidth()
-                                                .aspectRatio(1.1f),
-                                            onPreviousMonthClick = {
-                                                month = if (month == 1) 12 else month - 1
-                                                calendarInputList = calendarView.createCalendarList(currentYear, month)
-                                            },
-                                            onNextMonthClick = {
-                                                month = if (month == 12) 1 else month + 1
-                                                calendarInputList = calendarView.createCalendarList(currentYear, month)
-                                            }
-                                        )
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(10.dp)
-                                                .align(Alignment.CenterEnd)
-                                        ) {
-                                            Spacer(modifier = Modifier.height(60.dp))
-                                            clickedCalendarElem?.notes?.forEach {
-                                                Text(
-                                                    if (it.contains("Day")) it else "- $it",
-                                                    color = Color.Black,
-                                                    fontWeight = FontWeight.SemiBold,
-                                                    fontSize = if (it.contains("Day")) 25.sp else 18.sp
-                                                )
-                                            }
-                                        }
-                                    }
+                                    CalendarScreen()
                                 }
                                 composable("PlansView") {
                                     PlansScreen(navController = navController) // Pass navController
