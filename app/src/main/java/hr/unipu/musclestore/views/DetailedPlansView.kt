@@ -25,6 +25,7 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
     var showSetActiveConfirmation by remember { mutableStateOf(false) } // For set active confirmation dialog
 
     LaunchedEffect(planId) {
+        println("Received planId in DetailedPlansView: $planId")
         planId?.let {
             workoutPlanViewModel.getWorkoutPlanById(context, it) { plan, _ ->
                 workoutPlan = plan

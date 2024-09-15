@@ -77,12 +77,6 @@ fun PlansScreen(navController: NavController) {
         exerciseTitle.contains(text, ignoreCase = true) && it.planId != activeWorkoutPlan?.planId
     }
 
-    // Debug logs
-    LaunchedEffect(text) {
-        println("Search Query: $text")
-        println("Filtered Plans Count: ${filteredPlans.size}")
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -124,13 +118,12 @@ fun PlansScreen(navController: NavController) {
                         decodeBase64ToBitmap(profilePictureBase64)?.asImageBitmap()
                     } ?: ImageBitmap.imageResource(id = R.drawable.lifter)
 
-                    val section = activeWorkoutPlan?.sections?.firstOrNull()
-                    val exercise = section?.exercises?.firstOrNull()
+                    val title = activeWorkoutPlan!!.title
                     val formattedTimestamp = TimestampManager.formatTimestamp(activeWorkoutPlan!!.timestamp)
 
                     CustomCard(
                         imageBitmap = imageBitmap,
-                        headerText = exercise?.title ?: "No Exercise",
+                        headerText = title,
                         createdAt = formattedTimestamp,
                         postedBy = "${user?.firstName} ${user?.lastName}",
                         onClick = {
@@ -201,15 +194,14 @@ fun PlansScreen(navController: NavController) {
                         decodeBase64ToBitmap(profilePictureBase64)?.asImageBitmap()
                     } ?: ImageBitmap.imageResource(id = R.drawable.lifter)
 
-                    val section = item.sections.firstOrNull()
-                    val exercise = section?.exercises?.firstOrNull()
+                    val title = item.title
                     val formattedTimestamp = TimestampManager.formatTimestamp(item.timestamp)
 
                     CustomCard(
                         imageBitmap = imageBitmap,
-                        headerText = exercise?.title ?: "No Exercise",
+                        headerText = title,
                         createdAt = formattedTimestamp,
-                        postedBy = "${item.user?.firstName} ${item.user?.lastName}",
+                        postedBy = "${item.user.firstName} ${item.user?.lastName}",
                         onClick = {
                             navController.navigate("DetailedPlansView/${item.planId}")
                         }
