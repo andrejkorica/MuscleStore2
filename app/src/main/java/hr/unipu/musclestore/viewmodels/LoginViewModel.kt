@@ -18,7 +18,14 @@ class LoginViewModel : ViewModel() {
     fun login(email: String, password: String, onTokenReceived: (String?) -> Unit) {
         viewModelScope.launch {
             val response = loginRequest(email, password)
-            val token = response?.let { JSONObject(it).optString("token") }
+            val token = response?.let {
+                try {
+                    JSONObject(it).optString("token", null) // Return null if no token found
+                } catch (e: Exception) {
+                    Log.e("loginViewModel", "Failed to parse JSON response: ${e.message}")
+                    null
+                }
+            }
             onTokenReceived(token)
         }
     }
@@ -39,14 +46,15 @@ class LoginViewModel : ViewModel() {
             try {
                 client.newCall(request).execute().use { response ->
                     if (response.isSuccessful) {
-                        response.body?.string()?: "Success with empty body"
+                        response.body?.string() // Successful response, return body
                     } else {
-                        "Failed with response code ${response.code}, message: ${response.message}"
+                        Log.e("loginViewModel", "Login failed: ${response.code}, ${response.message}")
+                        null // Return null if unsuccessful
                     }
                 }
             } catch (e: IOException) {
                 Log.e("loginViewModel", "Exception during login request: ${e.message}")
-                "Exception: ${e.message}"
+                null // Return null on exception
             }
         }
     }

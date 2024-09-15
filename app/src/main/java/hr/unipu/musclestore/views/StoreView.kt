@@ -36,12 +36,12 @@ import hr.unipu.musclestore.viewmodels.StoreViewModel
 @Composable
 fun StoreScreen(
     storeViewModel: StoreViewModel = viewModel(),
-    workoutPlanViewModel: WorkoutPlanViewModel= viewModel(),
+    workoutPlanViewModel: WorkoutPlanViewModel = viewModel(),
     profileViewModel: ProfileViewModel = viewModel(),
     navController: NavController
 ) {
     val context = LocalContext.current
-    var text by remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf("") }
     var showFilterDialog by remember { mutableStateOf(false) }
     var currentUser by remember { mutableStateOf<User?>(null) }
     var addedWorkoutPlans by remember { mutableStateOf<List<WorkoutPlan>>(emptyList()) }
@@ -85,8 +85,8 @@ fun StoreScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     SearchBar(
-                        query = text,
-                        onQueryChange = { text = it },
+                        query = searchQuery,
+                        onQueryChange = { searchQuery = it },
                         onSearch = { /* Handle search action */ },
                         active = false,
                         onActiveChange = { /* Handle active state change */ },
@@ -96,10 +96,6 @@ fun StoreScreen(
                             // Define the content to be displayed when the search bar is active
                         }
                     )
-
-                    IconButton(onClick = { showFilterDialog = true }) {
-                        Icon(Icons.Default.List, contentDescription = "Filter")
-                    }
                 }
             }
         }
@@ -153,7 +149,8 @@ fun StoreScreen(
             LazyColumn {
                 // Ensure currentUser and addedWorkoutPlans are not null before filtering
                 val filteredPlans = storeViewModel.workoutPlans.filter { workoutPlan ->
-                    workoutPlan.planId !in addedWorkoutPlans.map { it.planId } &&
+                    (searchQuery.isEmpty() || workoutPlan.title.contains(searchQuery, ignoreCase = true)) &&
+                            workoutPlan.planId !in addedWorkoutPlans.map { it.planId } &&
                             workoutPlan.user.email != currentUser?.email
                 }
 

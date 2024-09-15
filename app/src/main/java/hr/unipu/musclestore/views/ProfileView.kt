@@ -29,6 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import hr.unipu.musclestore.R
 import hr.unipu.musclestore.data.User
+import hr.unipu.musclestore.utils.Base64Manager
 import hr.unipu.musclestore.utils.StreakManager
 import hr.unipu.musclestore.viewmodel.ProfileViewModel
 import hr.unipu.musclestore.viewmodel.WorkoutPlanViewModel
@@ -38,7 +39,7 @@ import java.io.IOException
 @Composable
 fun ProfileView(navController: NavController) {
     val context = LocalContext.current
-    val profileViewModel: ProfileViewModel = viewModel()
+    val profileViewModel: ProfileViewModel.ProfileViewModel = viewModel()
     val workoutPlanViewModel: WorkoutPlanViewModel = viewModel()
 
     var userData by remember { mutableStateOf<User?>(null) }
@@ -47,6 +48,8 @@ fun ProfileView(navController: NavController) {
     var streak by remember { mutableStateOf(0) }
     var weeklyAverage by remember { mutableStateOf(0.0) }
     var monthlyAverage by remember { mutableStateOf(0.0) }
+    var showDeleteConfirmationDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountConfirmationDialog by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -58,7 +61,7 @@ fun ProfileView(navController: NavController) {
                 userData = user
                 if (user.profilePicture != null) {
                     user.profilePicture.let { base64 ->
-                        profileBitmap = profileViewModel.decodeBase64Image(base64)
+                        profileBitmap = Base64Manager.decodeBase64ToBitmap(base64)
                     }
                 }
             } else {
@@ -107,7 +110,7 @@ fun ProfileView(navController: NavController) {
                                 if (user != null) {
                                     userData = user
                                     user.profilePicture?.let { base64 ->
-                                        profileBitmap = profileViewModel.decodeBase64Image(base64)
+                                        profileBitmap = Base64Manager.decodeBase64ToBitmap(base64)
                                     }
                                 }
                             }
@@ -238,8 +241,63 @@ fun ProfileView(navController: NavController) {
                             Text(text = "Current Plan: ${currentPlanTitle ?: "Loading..."}", fontSize = 16.sp)
                         }
                     }
+
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(24.dp)
+                    ) {
+
+                        Button(
+                            onClick = { showDeleteConfirmationDialog = true },
+                            colors = ButtonDefaults.buttonColors(Color.Red.copy(alpha = 0.7f)),
+                            shape = RoundedCornerShape(8.dp) // Less rounded corners
+                        ) {
+                            Text(text = "Delete data", fontSize = 16.sp)
+                        }
+                    }
                 }
             }
         }
     }
+
+    // Confirmation Dialog for deleting data
+    if (showDeleteConfirmationDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmationDialog = false },
+            title = { Text(text = "Confirm Deletion") },
+            text = { Text("Are you sure you want to delete all workout notations? This action cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        // Call the function to delete workout notations
+                        workoutPlanViewModel.deleteWorkoutNotationsForUser(context) { success, response ->
+                            if (success) {
+                                Toast.makeText(context, "Workout notations deleted successfully.", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, response ?: "Failed to delete workout notations.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        showDeleteConfirmationDialog = false
+                    }
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showDeleteConfirmationDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+
 }

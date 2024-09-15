@@ -1,3 +1,4 @@
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,7 +14,6 @@ fun LoginScreen(navController: NavController) {
     val viewModel: LoginViewModel = viewModel()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
 
     Column(
@@ -52,17 +52,14 @@ fun LoginScreen(navController: NavController) {
                             }
                         }
                     } else {
-                        errorMessage = "Login failed"
+                        // Show toast notification for wrong credentials
+                        Toast.makeText(context, "Login failed: Wrong credentials", Toast.LENGTH_SHORT).show()
                     }
                 }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Login")
-        }
-        errorMessage?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(it, color = MaterialTheme.colorScheme.error)
         }
     }
 }

@@ -613,7 +613,40 @@ class WorkoutPlanViewModel : ViewModel() {
         }
     }
 
+    fun deleteWorkoutNotationsForUser(
+        context: Context,
+        callback: (Boolean, String?) -> Unit
+    ) {
+        val token = TokenManager.getToken(context)
 
+        viewModelScope.launch {
+            val response = deleteWorkoutNotationRequest(token)
+            val success = response.isEmpty()
+            callback(success, response)
+        }
+    }
 
+    private suspend fun deleteWorkoutNotationRequest(token: String?): String {
+        return withContext(Dispatchers.IO) {
+            val request = Request.Builder()
+                .url("http://10.0.2.2:8080/api/workout-plans/workout-notations")
+                .delete()
+                .addHeader("Authorization", "Bearer $token")
+                .build()
+
+            try {
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        ""  // Return an empty string on successful deletion
+                    } else {
+                        "Failed with response code ${response.code}, message: ${response.message}"
+                    }
+                }
+            } catch (e: IOException) {
+                Log.e("WorkoutPlanViewModel", "Exception during delete workout notation request: ${e.message}")
+                "Exception: ${e.message}"
+            }
+        }
+    }
 
 }
