@@ -45,7 +45,7 @@ fun CalendarScreen(
         }
     }
 
-    val calendarInputList = remember(month) {
+    val calendarInputList = remember(month, year) {
         createCalendarList(year, month)
     }
     val daysInMonth = calendarInputList.size
@@ -57,7 +57,7 @@ fun CalendarScreen(
 
     Column(modifier = modifier) {
         Spacer(modifier = Modifier.padding(8.dp))
-        // Month Navigation
+        // Month and Year Navigation
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -69,7 +69,7 @@ fun CalendarScreen(
                 Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Previous Month")
             }
             Text(
-                text = currentMonthString,
+                text = "$currentMonthString $year",
                 fontWeight = FontWeight.Medium,
                 color = Color.Black,
                 fontSize = 40.sp,
@@ -99,7 +99,7 @@ fun CalendarScreen(
                     notationDate.monthValue == month && notationDate.year == year && notationDate.dayOfMonth == day
                 }
                 CalendarCell(
-                    day = day,
+                    day = day+1,
                     isSelected = clickedDay?.day == day,
                     hasWorkout = hasWorkout, // Pass hasWorkout parameter
                     onClick = {
@@ -113,17 +113,16 @@ fun CalendarScreen(
 
 
 
+
 fun createCalendarList(year: Int, month: Int): List<CalendarInput> {
-    val daysInMonth = YearMonth.of(year, month).lengthOfMonth()
-    val firstDayOfMonth = LocalDate.of(year, month, 1).dayOfWeek.value
-    val daysBeforeMonthStart = (firstDayOfMonth % 7) // Compute zero-based index for the first day of the month
+    val yearMonth = YearMonth.of(year, month)
+    val daysInMonth = yearMonth.lengthOfMonth()
+    val firstDayOfMonth = yearMonth.atDay(1).dayOfWeek
+
+    // Compute zero-based index for the first day of the month
+    val daysBeforeMonthStart = (firstDayOfMonth.value % 7)
 
     val calendarInputList = mutableListOf<CalendarInput>()
-
-    // Add placeholder days for alignment
-    for (i in 1 until daysBeforeMonthStart) {
-        calendarInputList.add(CalendarInput(day = 0)) // Placeholder day
-    }
 
     // Add actual days of the month
     for (day in 1..daysInMonth) {

@@ -6,12 +6,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import hr.unipu.musclestore.data.AddFromStoreResponse
 import hr.unipu.musclestore.data.WorkoutPlan
 import hr.unipu.musclestore.viewmodel.WorkoutPlanViewModel
 
@@ -21,8 +23,9 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
     val context = LocalContext.current
     var workoutPlan by remember { mutableStateOf<WorkoutPlan?>(null) }
     var isLoading by remember { mutableStateOf(true) }
-    var showDeleteConfirmation by remember { mutableStateOf(false) } // For delete confirmation dialog
-    var showSetActiveConfirmation by remember { mutableStateOf(false) } // For set active confirmation dialog
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showSetActiveConfirmation by remember { mutableStateOf(false) }
+    var addedFromStoreRecords by remember { mutableStateOf<List<AddFromStoreResponse>>(emptyList()) }
 
     LaunchedEffect(planId) {
         println("Received planId in DetailedPlansView: $planId")
@@ -31,6 +34,10 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
                 workoutPlan = plan
                 isLoading = false
             }
+        }
+
+        workoutPlanViewModel.getAllAddedFromStore(context) { records, _ ->
+            addedFromStoreRecords = records ?: emptyList()
         }
     }
 
@@ -47,6 +54,8 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
             }
         } else {
             workoutPlan?.let { plan ->
+                val isFromStore = addedFromStoreRecords.any { it.workoutPlan?.planId == plan.planId }
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -86,8 +95,12 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Button(
-                                onClick = { showDeleteConfirmation = true }, // Show confirmation dialog
-                                modifier = Modifier.weight(1f)
+                                onClick = { showDeleteConfirmation = true },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isFromStore) Color.Gray else MaterialTheme.colorScheme.primary
+                                ),
+                                enabled = !isFromStore
                             ) {
                                 Text("Delete")
                             }
@@ -95,7 +108,7 @@ fun DetailedPlansView(planId: String?, navController: NavController) {
                             Spacer(modifier = Modifier.width(8.dp)) // Space between buttons
 
                             Button(
-                                onClick = { showSetActiveConfirmation = true }, // Show set active confirmation dialog
+                                onClick = { showSetActiveConfirmation = true },
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Text("Set as Active")

@@ -34,13 +34,11 @@ fun CalendarCell(
             .padding(8.dp), // Add padding inside the cell
         contentAlignment = Alignment.Center
     ) {
-        if (day != 0) { // Ensure day is not zero
             Text(
                 text = day.toString(),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp, // Increase text size for better visibility
                 color = Color.Black // Set text color for better contrast
             )
-        }
     }
 }
